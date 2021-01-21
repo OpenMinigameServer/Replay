@@ -21,6 +21,7 @@ dependencies {
     implementation(kotlin("stdlib"))
     compileOnly(minestom("c5d56ae820"))
     testImplementation(minestom("c5d56ae820"))
+
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
 }

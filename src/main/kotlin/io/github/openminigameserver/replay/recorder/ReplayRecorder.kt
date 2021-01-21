@@ -54,7 +54,10 @@ class ReplayRecorder(private val instance: Instance, private val options: Record
         when (options.positionRecordType) {
             GROUP_ALL -> listOf(RecEntitiesPosition(recordedPositions))
             SEPARATE_ALL -> recordedPositions.map { RecEntityMove(it.value, it.key) }
-        }.forEach { replay.addAction(it) }
+        }.forEach {
+            if (it !is RecEntitiesPosition || it.positions.isNotEmpty())
+                replay.addAction(it)
+        }
     }
 
     fun startRecording() {
