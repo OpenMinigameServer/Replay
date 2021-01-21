@@ -1,0 +1,9 @@
+{
+  "name": "Replay",
+  "entrypoint": "io.github.openminigameserver.replay.ReplayExtension",
+  "version": "${version}",
+  "authors": [
+    "NickAcPT"
+  ],
+  "mixinConfig": "mixins.replay.json"
+}
