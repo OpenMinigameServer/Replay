@@ -1,5 +1,6 @@
 package io.github.openminigameserver.replay
 
+import io.github.openminigameserver.replay.extensions.getEntity
 import io.github.openminigameserver.replay.extensions.recorder
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntityMetadata
 import io.github.openminigameserver.replay.model.recordable.impl.RecPlayerHandAnimation
@@ -19,7 +20,7 @@ object ReplayListener {
         MinecraftServer.getGlobalEventHandler().addEventCallback(PlayerHandAnimationEvent::class.java) {
             val replay = it.player.instance?.recorder?.replay ?: return@addEventCallback
 
-            replay.addAction(RecPlayerHandAnimation(it.hand, replay.getEntity(it.player)))
+            replay.addAction(RecPlayerHandAnimation(enumValueOf(it.hand.name), replay.getEntity(it.player)))
         }
     }
 

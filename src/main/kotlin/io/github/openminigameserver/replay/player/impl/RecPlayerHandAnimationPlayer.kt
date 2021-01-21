@@ -1,5 +1,6 @@
 package io.github.openminigameserver.replay.player.impl
 
+import io.github.openminigameserver.replay.model.recordable.impl.Hand
 import io.github.openminigameserver.replay.model.recordable.impl.RecPlayerHandAnimation
 import io.github.openminigameserver.replay.player.EntityActionPlayer
 import io.github.openminigameserver.replay.player.ReplaySession
@@ -17,8 +18,8 @@ object RecPlayerHandAnimationPlayer : EntityActionPlayer<RecPlayerHandAnimation>
     ) {
         if (entity !is Player) return
         when (action.hand) {
-            Player.Hand.MAIN -> entity.swingMainHand()
-            Player.Hand.OFF -> entity.swingOffHand()
+            Hand.MAIN -> entity.swingMainHand()
+            Hand.OFF -> entity.swingOffHand()
         }
     }
 }

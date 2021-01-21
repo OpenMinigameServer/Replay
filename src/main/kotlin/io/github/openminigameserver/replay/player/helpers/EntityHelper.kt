@@ -1,5 +1,6 @@
 package io.github.openminigameserver.replay.player.helpers
 
+import io.github.openminigameserver.replay.extensions.toMinestom
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.EntityType
@@ -12,7 +13,7 @@ internal object EntityHelper {
     fun createEntity(type: EntityType, spawnPosition: Position, entityData: Any?): Entity =
         (if (type == EntityType.PLAYER && entityData is PlayerEntityData) {
             ReplayPlayerEntity(UUID.randomUUID(), entityData.userName).also {
-                it.skin = entityData.skin
+                it.skin = entityData.skin?.toMinestom()
                 it.settings
             }
         }

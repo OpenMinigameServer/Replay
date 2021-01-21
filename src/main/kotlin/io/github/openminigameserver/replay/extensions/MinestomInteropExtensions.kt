@@ -2,9 +2,11 @@ package io.github.openminigameserver.replay.extensions
 
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
+import io.github.openminigameserver.replay.model.ReplayFile
 import io.github.openminigameserver.replay.model.recordable.RecordablePosition
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
+import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerSkinData
 import io.github.openminigameserver.replay.player.ReplaySession
 import io.github.openminigameserver.replay.recorder.ReplayRecorder
 import kotlinx.coroutines.CoroutineScope
@@ -57,7 +59,22 @@ fun Entity.toReplay(): RecordableEntity {
             skin ?: profileCache.get(uuid) { kotlin.runCatching { PlayerSkin.fromUuid(uuid.toString()) }.getOrNull() }
 
         data =
-            PlayerEntityData(username, skin)
+            PlayerEntityData(username, skin?.toReplay())
     }
     return RecordableEntity(entityId, entityType.namespaceID, position.toReplay(), data)
+}
+
+fun PlayerSkin.toReplay(): PlayerSkinData {
+    val decoder = Base64.getDecoder()
+    return PlayerSkinData(decoder.decode(textures), decoder.decode(signature))
+}
+
+fun PlayerSkinData.toMinestom(): PlayerSkin {
+    val encoder = Base64.getEncoder()
+    return PlayerSkin(encoder.encodeToString(textures), encoder.encodeToString(signature))
+}
+
+
+fun ReplayFile.getEntity(entity: Entity): RecordableEntity {
+    return getEntityById(entity.entityId)
 }

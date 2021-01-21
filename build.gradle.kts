@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     kotlin("jvm") version "1.4.30-M1"
 }
@@ -7,42 +5,53 @@ plugins {
 group = "io.github.openminigameserver"
 version = "1.0-SNAPSHOT"
 
-repositories {
-    mavenCentral()
-    maven("https://jitpack.io")
-    maven("https://libraries.minecraft.net")
-    maven("https://repo.spongepowered.org/maven")
-    maven("https://oss.sonatype.org/content/repositories/snapshots/")
-    maven("https://dl.bintray.com/kotlin/kotlin-eap")
-    maven("https://kotlin.bintray.com/kotlinx/")
+allprojects.forEach {
+
+    it.apply(plugin = "kotlin")
+
+    it.repositories {
+        mavenCentral()
+        maven("https://jitpack.io")
+        maven("https://libraries.minecraft.net")
+        maven("https://repo.spongepowered.org/maven")
+        maven("https://oss.sonatype.org/content/repositories/snapshots/")
+        maven("https://dl.bintray.com/kotlin/kotlin-eap")
+        maven("https://kotlin.bintray.com/kotlinx/")
+    }
+
+
+    it.dependencies {
+        implementation(kotlin("stdlib"))
+
+        implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
+    }
+
+    it.java {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+    val compileKotlin: org.jetbrains.kotlin.gradle.tasks.KotlinCompile by it.tasks
+    compileKotlin.kotlinOptions {
+        jvmTarget = "11"
+        freeCompilerArgs =
+            freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn" + "-Xopt-in=kotlin.time.ExperimentalTime" + "-Xopt-in=kotlin.contracts.ExperimentalContracts"
+    }
+    val compileTestKotlin: org.jetbrains.kotlin.gradle.tasks.KotlinCompile by it.tasks
+    compileTestKotlin.kotlinOptions {
+        jvmTarget = "11"
+    }
+
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
+    implementation(project(":Replay-Model"))
     compileOnly(minestom("c5d56ae820"))
     testImplementation(minestom("c5d56ae820"))
-
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
 }
 
 fun minestom(commit: String): String {
     return "com.github.Minestom:Minestom:$commit"
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-    jvmTarget = "11"
-    freeCompilerArgs =
-        freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn" + "-Xopt-in=kotlin.time.ExperimentalTime" + "-Xopt-in=kotlin.contracts.ExperimentalContracts"
-}
-val compileTestKotlin: KotlinCompile by tasks
-compileTestKotlin.kotlinOptions {
-    jvmTarget = "11"
 }
 
 tasks {
