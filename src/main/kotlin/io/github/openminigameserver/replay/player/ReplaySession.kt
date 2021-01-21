@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTime::class)
-
 package io.github.openminigameserver.replay.player
 
 import io.github.openminigameserver.replay.extensions.replaySession
@@ -15,9 +13,7 @@ import net.minestom.server.timer.Task
 import net.minestom.server.utils.time.TimeUnit
 import java.util.*
 import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
 
-@ExperimentalTime
 class ReplaySession(internal val instance: Instance, val replay: ReplayFile, val viewers: MutableList<Player>) {
     private var tickerTask: Task? = null
 
@@ -83,7 +79,6 @@ class ReplaySession(internal val instance: Instance, val replay: ReplayFile, val
      */
     private var lastReplayTime = Duration.ZERO /* Used to detect if we're going backwards */
 
-    @OptIn(ExperimentalTime::class)
     internal fun tick() {
         if (!hasSpawnedEntities) {
             replay.entities.values.filter { it.spawnOnStart }.forEach {

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTime::class)
-
 package io.github.openminigameserver.replay.model
 
 import io.github.openminigameserver.replay.extensions.currentDuration
@@ -9,7 +7,6 @@ import kotlinx.datetime.Clock.System.now
 import kotlinx.datetime.Instant
 import net.minestom.server.entity.Entity
 import java.util.*
-import kotlin.time.ExperimentalTime
 
 data class ReplayFile(
     val id: UUID = UUID.randomUUID(),
