@@ -2,7 +2,7 @@ package io.github.openminigameserver.replay.extensions
 
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
-import io.github.openminigameserver.replay.model.ReplayFile
+import io.github.openminigameserver.replay.model.Replay
 import io.github.openminigameserver.replay.model.recordable.RecordablePosition
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
@@ -75,6 +75,6 @@ fun PlayerSkinData.toMinestom(): PlayerSkin {
 }
 
 
-fun ReplayFile.getEntity(entity: Entity): RecordableEntity {
+fun Replay.getEntity(entity: Entity): RecordableEntity {
     return getEntityById(entity.entityId)
 }

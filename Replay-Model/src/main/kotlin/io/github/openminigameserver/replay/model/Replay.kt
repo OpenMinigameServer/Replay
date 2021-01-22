@@ -7,7 +7,7 @@ import kotlinx.datetime.Instant
 import java.util.*
 import kotlin.time.Duration
 
-data class ReplayFile(
+data class Replay(
     val version: Int = 1,
     val id: UUID = UUID.randomUUID(),
     val recordStartTime: Instant = now(),
@@ -15,7 +15,7 @@ data class ReplayFile(
     val entities: MutableMap<Int, RecordableEntity> = mutableMapOf()
 ) {
 
-    internal val ReplayFile.currentDuration: Duration
+    private val currentDuration: Duration
         get() {
             return now().minus(recordStartTime)
         }
