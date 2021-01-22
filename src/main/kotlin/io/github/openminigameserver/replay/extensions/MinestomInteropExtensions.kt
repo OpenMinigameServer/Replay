@@ -15,7 +15,9 @@ import net.minestom.server.entity.Entity
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.PlayerSkin
 import net.minestom.server.instance.Instance
+import net.minestom.server.network.packet.server.play.EntityMetaDataPacket
 import net.minestom.server.utils.Position
+import net.minestom.server.utils.binary.BinaryWriter
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -59,7 +61,7 @@ fun Entity.toReplay(): RecordableEntity {
             skin ?: profileCache.get(uuid) { kotlin.runCatching { PlayerSkin.fromUuid(uuid.toString()) }.getOrNull() }
 
         data =
-            PlayerEntityData(username, skin?.toReplay())
+            PlayerEntityData(username, skin?.toReplay(), metadataPacket.getMetadataArray())
     }
     return RecordableEntity(entityId, entityType.namespaceID, position.toReplay(), data)
 }
@@ -77,4 +79,8 @@ fun PlayerSkinData.toMinestom(): PlayerSkin {
 
 fun Replay.getEntity(entity: Entity): RecordableEntity {
     return getEntityById(entity.entityId)
+}
+
+fun EntityMetaDataPacket.getMetadataArray(): ByteArray {
+    return BinaryWriter().use { consumer?.accept(it); it.toByteArray() }
 }

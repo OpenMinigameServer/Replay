@@ -7,8 +7,12 @@ import io.github.openminigameserver.replay.player.helpers.EntityManager
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import net.minestom.server.MinecraftServer
+import net.minestom.server.chat.ChatColor
+import net.minestom.server.chat.ColoredText
 import net.minestom.server.entity.Player
 import net.minestom.server.instance.Instance
+import net.minestom.server.network.packet.server.play.TeamsPacket
+import net.minestom.server.scoreboard.Team
 import net.minestom.server.timer.Task
 import net.minestom.server.utils.time.TimeUnit
 import java.util.*
@@ -25,7 +29,7 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
     }
 
     private fun resetActions(targetDuration: Duration = Duration.ZERO) {
-        actions.addAll(replay.actions.filter { it.timestamp>= targetDuration }.sortedByDescending { it.timestamp })
+        actions.addAll(replay.actions.filter { it.timestamp >= targetDuration }.sortedByDescending { it.timestamp })
     }
 
     var speed: Double = 1.0
@@ -45,18 +49,31 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
     private var currentReplayTime: Duration = Duration.ZERO
 
     var time: Duration
-    get() = currentReplayTime
-    set(value) {
-        currentReplayTime = value
-    }
+        get() = currentReplayTime
+        set(value) {
+            currentReplayTime = value
+        }
+
+
+    private val viewerTeam: Team = MinecraftServer.getTeamManager().createBuilder("ReplayViewers")
+        .prefix(ColoredText.of(ChatColor.GRAY, "[Viewer] "))
+        .collisionRule(TeamsPacket.CollisionRule.NEVER)
+        .teamColor(ChatColor.GRAY)
+        .build()
 
     fun init() {
-        tickerTask = MinecraftServer.getSchedulerManager().buildTask(ticker).repeat(1, TimeUnit.TICK).schedule()
+        viewers.forEach { p ->
+            viewerTeam.addMember(p.username)
+        }
+        tickerTask = MinecraftServer.getSchedulerManager().buildTask(ticker).repeat(10, TimeUnit.MILLISECOND).schedule()
     }
 
     fun removeViewer(player: Player) {
         entityManager.removeEntityViewer(player)
         viewers.remove(player)
+
+        if (viewerTeam.members.contains(player.username))
+            viewerTeam.removeMember(player.username)
 
         if (viewers.isEmpty()) {
             unInit()

@@ -12,9 +12,8 @@ internal object EntityHelper {
 
     fun createEntity(type: EntityType, spawnPosition: Position, entityData: Any?): Entity =
         (if (type == EntityType.PLAYER && entityData is PlayerEntityData) {
-            ReplayPlayerEntity(UUID.randomUUID(), entityData.userName).also {
+            ReplayPlayerEntity(UUID.randomUUID(), entityData.userName, entityData.metadata).also {
                 it.skin = entityData.skin?.toMinestom()
-                it.settings
             }
         }
         else object : Entity(type, spawnPosition) {
