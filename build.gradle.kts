@@ -45,7 +45,7 @@ allprojects.forEach {
 }
 
 dependencies {
-    implementation(project(":Replay-Model"))
+    implementation(project(":model"))
     compileOnly(minestom("c5d56ae820"))
     testImplementation(minestom("c5d56ae820"))
 }
