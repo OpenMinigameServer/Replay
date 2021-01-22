@@ -34,7 +34,7 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
     var hasSpawnedEntities = false
 
     /**
-     * Last timestamp in milliseconds the [process] method was called.
+     * Last timestamp in milliseconds the [tick] method was called.
      */
     private var lastTickTime: Instant = Clock.System.now()
 
