@@ -1,5 +1,6 @@
 package io.github.openminigameserver.replay.player
 
+import io.github.openminigameserver.replay.TickTime
 import io.github.openminigameserver.replay.extensions.replaySession
 import io.github.openminigameserver.replay.model.Replay
 import io.github.openminigameserver.replay.model.recordable.RecordableAction
@@ -19,7 +20,7 @@ import net.minestom.server.utils.time.TimeUnit
 import java.util.*
 import kotlin.time.Duration
 
-class ReplaySession(internal val instance: Instance, val replay: Replay, val viewers: MutableList<Player>) {
+class ReplaySession(internal val instance: Instance, val replay: Replay, val viewers: MutableList<Player>, val tickTime: TickTime = TickTime(1L, TimeUnit.TICK)) {
     private var tickerTask: Task? = null
 
     private val playerStateHelper = ReplaySessionPlayerStateHelper(this)

@@ -12,9 +12,12 @@ object RecEntitiesPositionPlayer : ActionPlayer<RecEntitiesPosition> {
         action.positions.forEach {
             val entity = session.entityManager.getNativeEntity(it.key) ?: return@forEach
 
-            val position = it.value.toMinestom()
+            val data = it.value
+            val position = data.position.toMinestom()
+            val velocity = data.velocity.toMinestom()
             entity.refreshPosition(position)
             entity.setView(position.yaw, position.pitch)
+            entity.velocity = velocity
         }
     }
 }

@@ -9,7 +9,7 @@ import java.util.*
 import kotlin.time.Duration
 
 data class Replay(
-    val version: Int = 1,
+    val version: Int = 2,
     val id: UUID = UUID.randomUUID(),
     val recordStartTime: Instant = now(),
     val entities: MutableMap<Int, RecordableEntity> = mutableMapOf(),

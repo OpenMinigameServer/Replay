@@ -1,6 +1,7 @@
 package io.github.openminigameserver.replay.commands
 
 import io.github.openminigameserver.replay.ReplayManager
+import io.github.openminigameserver.replay.TickTime
 import io.github.openminigameserver.replay.extensions.replaySession
 import io.github.openminigameserver.replay.extensions.runOnSeparateThread
 import io.github.openminigameserver.replay.player.ReplaySession
@@ -10,6 +11,7 @@ import net.minestom.server.command.builder.Arguments
 import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.arguments.ArgumentWord
 import net.minestom.server.entity.Player
+import net.minestom.server.utils.time.TimeUnit
 import java.util.*
 import kotlin.time.Duration
 
@@ -30,6 +32,8 @@ object ReplayCommand : Command("replay") {
             runOnSeparateThread {
                 try {
 
+                    sender.sendMessage(ChatColor.GRAY.toString() + "Attempting to load your replay..")
+
                     val replay = ReplayManager.storageSystem.loadReplay(id)
 
                     if (replay == null) {
@@ -37,8 +41,12 @@ object ReplayCommand : Command("replay") {
                         return@runOnSeparateThread
                     }
 
-
-                    val session = ReplaySession(instance, replay, mutableListOf(sender))
+                    val session = ReplaySession(
+                        instance,
+                        replay,
+                        mutableListOf(sender),
+                        TickTime(1, TimeUnit.MILLISECOND)
+                    )
                     instance.replaySession = session
                     session.init()
 

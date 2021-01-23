@@ -4,6 +4,7 @@ import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import io.github.openminigameserver.replay.model.Replay
 import io.github.openminigameserver.replay.model.recordable.RecordablePosition
+import io.github.openminigameserver.replay.model.recordable.RecordableVector
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.model.recordable.entity.data.BaseEntityData
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
@@ -18,12 +19,16 @@ import net.minestom.server.entity.PlayerSkin
 import net.minestom.server.instance.Instance
 import net.minestom.server.network.packet.server.play.EntityMetaDataPacket
 import net.minestom.server.utils.Position
+import net.minestom.server.utils.Vector
 import net.minestom.server.utils.binary.BinaryWriter
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 fun Position.toReplay(): RecordablePosition = RecordablePosition(x, y, z, yaw, pitch)
 fun RecordablePosition.toMinestom(): Position = Position(x, y, z, yaw, pitch)
+
+fun Vector.toReplay(): RecordableVector = RecordableVector(x, y, z)
+fun RecordableVector.toMinestom(): Vector = Vector(x, y, z)
 
 const val REPLAY_RECORDER_DATA = "replay:recorder"
 const val REPLAY_REPLAYER_DATA = "replay:replayer"

@@ -1,8 +1,9 @@
 package io.github.openminigameserver.replay.recorder
 
 import io.github.openminigameserver.replay.ReplayManager
+import io.github.openminigameserver.replay.TickTime
 import io.github.openminigameserver.replay.extensions.toReplay
-import io.github.openminigameserver.replay.model.recordable.RecordablePosition
+import io.github.openminigameserver.replay.model.recordable.RecordablePositionAndVector
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntitiesPosition
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntityMove
@@ -18,11 +19,11 @@ import java.util.*
 class ReplayRecorder(
     private val instance: Instance,
     private val options: RecorderOptions = RecorderOptions(),
-    private val tickInterval: Pair<Long, TimeUnit> = 1L to TimeUnit.TICK
+    private val tickInterval: TickTime = TickTime(1L, TimeUnit.TICK)
 ) {
     private var tickerTask: Task
     val replay = ReplayManager.createEmptyReplay()
-    var isRecording = false
+    private var isRecording = false
 
     init {
         if (instance.data == null) {
@@ -37,11 +38,11 @@ class ReplayRecorder(
         return MinecraftServer.getSchedulerManager().buildTask {
             if (!isRecording) return@buildTask
             doEntityTick(entityPositions)
-        }.repeat(tickInterval.first, tickInterval.second).schedule()
+        }.repeat(tickInterval.time, tickInterval.unit).schedule()
     }
 
     private fun doEntityTick(entityPositions: MutableMap<UUID, Position>) {
-        val recordedPositions = mutableMapOf<RecordableEntity, RecordablePosition>()
+        val recordedPositions = mutableMapOf<RecordableEntity, RecordablePositionAndVector>()
 
         instance.entities.forEach { entity ->
             if (entity.instance != instance || !isRecording) return@forEach
@@ -50,7 +51,7 @@ class ReplayRecorder(
             val oldPosition = entityPositions[entity.uuid]
             if (oldPosition == null || oldPosition != currentPosition) {
                 val replayEntity = replay.getEntityById(entity.entityId)
-                recordedPositions[replayEntity] = currentPosition.toReplay()
+                recordedPositions[replayEntity] = RecordablePositionAndVector(currentPosition.toReplay(), entity.velocity.toReplay())
                 entityPositions[entity.uuid] = entity.position.clone()
             }
         }

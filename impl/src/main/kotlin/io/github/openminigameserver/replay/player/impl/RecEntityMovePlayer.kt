@@ -19,9 +19,11 @@ object RecEntityMovePlayer : EntityActionPlayer<RecEntityMove>() {
         instance: Instance,
         viewers: List<Player>
     ) {
-        val position = action.position.toMinestom()
+        val data = action.data
+        val position = data.position.toMinestom()
+        val velocity = data.velocity.toMinestom()
         entity.refreshPosition(position)
         entity.setView(position.yaw, position.pitch)
-        entity.velocity = emptyVector
+        entity.velocity = velocity
     }
 }
