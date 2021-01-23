@@ -1,7 +1,10 @@
 package io.github.openminigameserver.replay.test
 
+import io.github.openminigameserver.replay.extensions.profileCache
 import net.minestom.server.MinecraftServer
+import net.minestom.server.entity.PlayerSkin
 import net.minestom.server.event.player.PlayerLoginEvent
+import net.minestom.server.event.player.PlayerSkinInitEvent
 import net.minestom.server.extras.MojangAuth
 import net.minestom.server.extras.PlacementRules
 import net.minestom.server.extras.optifine.OptifineSupport
@@ -22,6 +25,15 @@ fun main(args: Array<String>) {
     PlacementRules.init()
     MinecraftServer.setGroupedPacket(false)
 
+
+
+    MinecraftServer.getGlobalEventHandler().addEventCallback(PlayerSkinInitEvent::class.java) {
+        it.apply {
+            skin = profileCache.get(this.player.uuid) {
+                kotlin.runCatching { PlayerSkin.fromUuid(this.player.uuid.toString()) }.getOrNull()
+            }
+        }
+    }
     MinecraftServer.getGlobalEventHandler().addEventCallback(PlayerLoginEvent::class.java, PlayerInit)
 
     server.start(

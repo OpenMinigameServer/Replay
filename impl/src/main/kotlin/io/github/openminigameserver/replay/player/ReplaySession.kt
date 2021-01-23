@@ -74,7 +74,7 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
         viewers.forEach { p ->
             viewerTeam.addMember(p.username)
         }
-        tickerTask = MinecraftServer.getSchedulerManager().buildTask(ticker).repeat(10, TimeUnit.MILLISECOND).schedule()
+        tickerTask = MinecraftServer.getSchedulerManager().buildTask(ticker).repeat(1, TimeUnit.TICK).schedule()
         playerStateHelper.init()
     }
 
@@ -140,8 +140,7 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
                 if (nextAction == null) {
                     // If still null, then we reached end of replay
                     paused = true
-                    resetActions()
-                    this.time = Duration.ZERO
+                    time = replay.duration
 
                     return
                 }

@@ -57,8 +57,7 @@ val profileCache: Cache<UUID, PlayerSkin> =
 fun Entity.toReplay(): RecordableEntity {
     var data: Any? = null
     if (this is Player) {
-        val skin =
-            skin ?: profileCache.get(uuid) { kotlin.runCatching { PlayerSkin.fromUuid(uuid.toString()) }.getOrNull() }
+        val skin = skin
 
         data =
             PlayerEntityData(username, skin?.toReplay(), metadataPacket.getMetadataArray())

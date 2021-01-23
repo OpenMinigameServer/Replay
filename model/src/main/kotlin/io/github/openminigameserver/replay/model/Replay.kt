@@ -14,8 +14,9 @@ data class Replay(
     val actions: MutableList<RecordableAction> = mutableListOf(),
     val entities: MutableMap<Int, RecordableEntity> = mutableMapOf()
 ) {
+    var duration: Duration = Duration.ZERO
 
-    private val currentDuration: Duration
+    val currentDuration: Duration
         get() {
             return now().minus(recordStartTime)
         }

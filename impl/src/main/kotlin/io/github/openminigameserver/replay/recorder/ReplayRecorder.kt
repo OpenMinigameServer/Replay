@@ -15,7 +15,11 @@ import net.minestom.server.utils.Position
 import net.minestom.server.utils.time.TimeUnit
 import java.util.*
 
-class ReplayRecorder(private val instance: Instance, private val options: RecorderOptions = RecorderOptions()) {
+class ReplayRecorder(
+    private val instance: Instance,
+    private val options: RecorderOptions = RecorderOptions(),
+    private val tickInterval: Pair<Long, TimeUnit> = 1L to TimeUnit.TICK
+) {
     private var tickerTask: Task
     val replay = ReplayManager.createEmptyReplay()
     var isRecording = false
@@ -33,7 +37,7 @@ class ReplayRecorder(private val instance: Instance, private val options: Record
         return MinecraftServer.getSchedulerManager().buildTask {
             if (!isRecording) return@buildTask
             doEntityTick(entityPositions)
-        }.repeat(1, TimeUnit.TICK).schedule()
+        }.repeat(tickInterval.first, tickInterval.second).schedule()
     }
 
     private fun doEntityTick(entityPositions: MutableMap<UUID, Position>) {
@@ -72,6 +76,7 @@ class ReplayRecorder(private val instance: Instance, private val options: Record
     }
 
     fun stopRecording() {
+        replay.duration = replay.currentDuration
         isRecording = false
         tickerTask.cancel()
     }
