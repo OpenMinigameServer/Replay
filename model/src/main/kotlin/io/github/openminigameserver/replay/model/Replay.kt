@@ -1,5 +1,6 @@
 package io.github.openminigameserver.replay.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import io.github.openminigameserver.replay.model.recordable.RecordableAction
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import kotlinx.datetime.Clock.System.now
@@ -11,11 +12,12 @@ data class Replay(
     val version: Int = 1,
     val id: UUID = UUID.randomUUID(),
     val recordStartTime: Instant = now(),
-    val actions: MutableList<RecordableAction> = mutableListOf(),
-    val entities: MutableMap<Int, RecordableEntity> = mutableMapOf()
+    val entities: MutableMap<Int, RecordableEntity> = mutableMapOf(),
+    val actions: MutableList<RecordableAction> = mutableListOf()
 ) {
     var duration: Duration = Duration.ZERO
 
+    @get:JsonIgnore
     val currentDuration: Duration
         get() {
             return now().minus(recordStartTime)

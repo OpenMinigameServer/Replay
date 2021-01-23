@@ -26,7 +26,6 @@ fun main(args: Array<String>) {
     MinecraftServer.setGroupedPacket(false)
 
 
-
     MinecraftServer.getGlobalEventHandler().addEventCallback(PlayerSkinInitEvent::class.java) {
         it.apply {
             skin = profileCache.get(this.player.uuid) {

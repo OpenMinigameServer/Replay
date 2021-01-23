@@ -5,6 +5,7 @@ import com.google.common.cache.CacheBuilder
 import io.github.openminigameserver.replay.model.Replay
 import io.github.openminigameserver.replay.model.recordable.RecordablePosition
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
+import io.github.openminigameserver.replay.model.recordable.entity.data.BaseEntityData
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerSkinData
 import io.github.openminigameserver.replay.player.ReplaySession
@@ -55,12 +56,11 @@ val profileCache: Cache<UUID, PlayerSkin> =
     CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.MINUTES).build()
 
 fun Entity.toReplay(): RecordableEntity {
-    var data: Any? = null
+    var data: BaseEntityData? = null
     if (this is Player) {
         val skin = skin
 
-        data =
-            PlayerEntityData(username, skin?.toReplay(), metadataPacket.getMetadataArray())
+        data = PlayerEntityData(username, skin?.toReplay(), metadataPacket.getMetadataArray())
     }
     return RecordableEntity(entityId, entityType.namespaceID, position.toReplay(), data)
 }

@@ -75,7 +75,6 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
             viewerTeam.addMember(p.username)
         }
         tickerTask = MinecraftServer.getSchedulerManager().buildTask(ticker).repeat(1, TimeUnit.TICK).schedule()
-        playerStateHelper.init()
     }
 
     private fun unInit() {
@@ -93,6 +92,7 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
         if (viewerTeam.members.contains(player.username))
             viewerTeam.removeMember(player.username)
 
+        player.sendActionBarMessage(ColoredText.of(""))
         if (viewers.isEmpty()) {
             unInit()
         }
@@ -112,6 +112,7 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
         if (!hasSpawnedEntities) {
             replay.entities.values.filter { it.spawnOnStart }.forEach {
                 entityManager.spawnEntity(it, it.spawnPosition!!)
+                playerStateHelper.init()
             }
             hasSpawnedEntities = true
         }

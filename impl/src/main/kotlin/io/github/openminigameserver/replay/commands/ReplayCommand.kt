@@ -28,18 +28,25 @@ object ReplayCommand : Command("replay") {
                 return@addSyntax
             }
             runOnSeparateThread {
-                val replay = ReplayManager.storageSystem.loadReplay(id)
+                try {
 
-                if (replay == null) {
-                    sender.sendMessage(ChatColor.RED.toString() + "Please provide a valid Replay ID!")
+                    val replay = ReplayManager.storageSystem.loadReplay(id)
+
+                    if (replay == null) {
+                        sender.sendMessage(ChatColor.RED.toString() + "Please provide a valid Replay ID!")
+                        return@runOnSeparateThread
+                    }
+
+
+                    val session = ReplaySession(instance, replay, mutableListOf(sender))
+                    instance.replaySession = session
+                    session.init()
+
+                } catch (e: Throwable) {
+                    e.printStackTrace()
+                    sender.sendMessage(ChatColor.RED.toString() + "An error occurred while trying to load your replay.")
                     return@runOnSeparateThread
                 }
-
-
-                val session = ReplaySession(instance, replay, mutableListOf(sender))
-                instance.replaySession = session
-                session.init()
-
             }
 
         }, ArgumentWord("action").from("play"), ArgumentWord("id"))

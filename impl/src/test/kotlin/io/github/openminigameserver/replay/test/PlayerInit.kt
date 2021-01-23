@@ -16,6 +16,7 @@ object PlayerInit : EventCallback<PlayerLoginEvent> {
     // Create the instance
     private val instanceContainer = instanceManager.createInstanceContainer().apply {
         chunkGenerator = MyChunkGenerator()
+        data = DataImpl()
         enableAutoChunkLoad(true)
     }
 

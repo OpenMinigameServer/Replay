@@ -1,5 +1,6 @@
 package io.github.openminigameserver.replay.player.inventory
 
+import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
 import io.github.openminigameserver.replay.player.ReplaySession
 import net.minestom.server.MinecraftServer
 import net.minestom.server.chat.ChatColor
@@ -51,11 +52,22 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
     }
 
     fun init() {
+        teleportViewers()
         tickerTask =
             MinecraftServer.getSchedulerManager()
                 .buildTask(tickerTaskRunnable)
                 .repeat(2, TimeUnit.SECOND)
                 .schedule()
+    }
+
+    private fun teleportViewers() {
+        val entities = session.replay.entities.values
+        val targetEntity = entities.firstOrNull { (it.entityData as? PlayerEntityData)?.userName == session.viewers.first().username } ?: entities.firstOrNull()
+        val targetEntityMinestom = targetEntity?.let { session.entityManager.getNativeEntity(it) }
+
+        if (targetEntityMinestom != null) {
+            session.viewers.forEach { it.teleport(targetEntityMinestom.position) }
+        }
     }
 
     fun unInit() {
