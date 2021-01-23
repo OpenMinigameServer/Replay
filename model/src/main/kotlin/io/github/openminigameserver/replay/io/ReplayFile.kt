@@ -18,14 +18,6 @@ class ReplayFile(private val file: File, var replay: Replay? = null, val isCompr
             registerModule(ReplayModule())
             registerModule(Jdk8Module())
             registerModule(JavaTimeModule())
-/*
-            registerModule(
-                MoonwlkerModule.builder()
-                    .fromProperty("@kind")
-                    .toSubclassesOf(RecordableAction::class.java, BaseEntityData::class.java)
-                    .build()
-            )
-*/
         }
     }
 
