@@ -5,7 +5,9 @@ import io.github.openminigameserver.replay.model.storage.MemoryReplayStorageSyst
 import io.github.openminigameserver.replay.model.storage.ReplayStorageSystem
 
 object ReplayManager {
+    @JvmStatic
     val storageSystem: ReplayStorageSystem = MemoryReplayStorageSystem
 
+    @JvmStatic
     fun createEmptyReplay() = Replay()
 }

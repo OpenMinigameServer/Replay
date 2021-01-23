@@ -47,7 +47,7 @@ object ReplayCommand : Command("replay") {
             if (sender !is Player) return@addSyntax
             val session = sender.instance!!.replaySession ?: return@addSyntax
 
-            session.paused = session.paused.not()
+            session.paused = !session.paused
 
         }, ArgumentWord("action").from("play", "pause", "start"))
 
