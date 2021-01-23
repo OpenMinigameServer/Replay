@@ -26,7 +26,7 @@ allprojects.forEach {
         implementation(kotlin("stdlib"))
 
         implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.4.2")
     }
 
     it.java {
