@@ -33,7 +33,7 @@ class ReplayExtension : Extension() {
             register(ReplayCommand)
         }
 
-        ReplayListener.registerListener()
+        ReplayListener.registerListeners()
         ReplayFile.doMapAttempt()
     }
 
