@@ -7,10 +7,11 @@ import net.minestom.server.network.player.PlayerConnection
 import net.minestom.server.utils.binary.BinaryWriter
 import java.net.SocketAddress
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 
 class ReplayPlayerEntity(uuid: UUID, username: String, private val firstMetadata: ByteArray) :
-    Player(uuid, "$username§r".take(16), ReplayPlayerConnection) {
+    Player(uuid, "$username§r".take(16), ReplayPlayerConnection()) {
     init {
         settings.refresh(Locale.ENGLISH.toLanguageTag(), 0, ChatMode.ENABLED, true, 127, MainHand.RIGHT)
     }
@@ -26,7 +27,12 @@ class ReplayPlayerEntity(uuid: UUID, username: String, private val firstMetadata
 }
 
 
-object ReplayPlayerConnection : PlayerConnection() {
+class ReplayPlayerConnection : PlayerConnection() {
+    private val id = counter.getAndIncrement()
+
+    companion object {
+        private val counter = AtomicInteger()
+    }
 
     override fun sendPacket(serverPacket: ServerPacket) {
     }
@@ -37,7 +43,7 @@ object ReplayPlayerConnection : PlayerConnection() {
      * @return the remote address
      */
     override fun getRemoteAddress(): SocketAddress {
-        return LocalAddress("replay-player")
+        return LocalAddress("replay-player$id")
     }
 
     /**

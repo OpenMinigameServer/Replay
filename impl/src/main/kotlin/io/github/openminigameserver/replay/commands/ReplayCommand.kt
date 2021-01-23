@@ -32,7 +32,7 @@ object ReplayCommand : Command("replay") {
             runOnSeparateThread {
                 try {
 
-                    sender.sendMessage(ChatColor.GRAY.toString() + "Attempting to load your replay..")
+                    sender.sendMessage(ChatColor.GRAY.toString() + "Attempting to load replay...")
 
                     val replay = ReplayManager.storageSystem.loadReplay(id)
 
@@ -44,7 +44,7 @@ object ReplayCommand : Command("replay") {
                     val session = ReplaySession(
                         instance,
                         replay,
-                        mutableListOf(sender),
+                        instance.players.toMutableList(),
                         TickTime(1, TimeUnit.MILLISECOND)
                     )
                     instance.replaySession = session

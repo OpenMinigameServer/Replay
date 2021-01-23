@@ -1,5 +1,6 @@
 package io.github.openminigameserver.replay.io
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.dataformat.smile.databind.SmileMapper
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -18,6 +19,10 @@ class ReplayFile(private val file: File, var replay: Replay? = null, val isCompr
             registerModule(ReplayModule())
             registerModule(Jdk8Module())
             registerModule(JavaTimeModule())
+        }
+
+        fun doMapAttempt() {
+            mapper.valueToTree<JsonNode>(Replay())
         }
     }
 

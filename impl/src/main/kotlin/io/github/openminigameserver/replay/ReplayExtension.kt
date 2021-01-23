@@ -3,6 +3,7 @@ package io.github.openminigameserver.replay
 import io.github.openminigameserver.replay.commands.ReplayCommand
 import io.github.openminigameserver.replay.commands.StartRecordingCommand
 import io.github.openminigameserver.replay.commands.StopRecordingCommand
+import io.github.openminigameserver.replay.io.ReplayFile
 import net.minestom.server.MinecraftServer
 import net.minestom.server.extensions.Extension
 import net.minestom.server.extras.selfmodification.MinestomRootClassLoader
@@ -33,6 +34,7 @@ class ReplayExtension : Extension() {
         }
 
         ReplayListener.registerListener()
+        ReplayFile.doMapAttempt()
     }
 
     override fun terminate() {

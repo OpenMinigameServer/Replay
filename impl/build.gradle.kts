@@ -1,7 +1,7 @@
 dependencies {
     implementation(project(":model"))
-    compileOnly(minestom("c5d56ae820"))
-    testImplementation(minestom("c5d56ae820"))
+    compileOnly(minestom("bf692d8043"))
+    testImplementation(minestom("bf692d8043"))
 }
 
 fun minestom(commit: String): String {

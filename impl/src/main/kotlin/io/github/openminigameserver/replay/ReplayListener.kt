@@ -1,17 +1,39 @@
 package io.github.openminigameserver.replay
 
-import io.github.openminigameserver.replay.extensions.getEntity
-import io.github.openminigameserver.replay.extensions.getMetadataArray
-import io.github.openminigameserver.replay.extensions.recorder
+import io.github.openminigameserver.replay.extensions.*
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntityMetadata
 import io.github.openminigameserver.replay.model.recordable.impl.RecPlayerHandAnimation
+import io.github.openminigameserver.replay.player.inventory.ControlItemAction
+import io.github.openminigameserver.replay.player.inventory.controlItemAction
 import net.minestom.server.MinecraftServer
+import net.minestom.server.event.inventory.InventoryPreClickEvent
 import net.minestom.server.event.player.PlayerHandAnimationEvent
+import net.minestom.server.event.player.PlayerUseItemEvent
 import net.minestom.server.network.packet.server.play.EntityMetaDataPacket
 
 object ReplayListener {
 
     fun registerListener() {
+
+        MinecraftServer.getGlobalEventHandler().addEventCallback(PlayerUseItemEvent::class.java) {
+            val replaySession = it.player.instance!!.replaySession ?: return@addEventCallback
+
+            val action = it.itemStack.controlItemAction
+            if (action != ControlItemAction.NONE) {
+                runOnSeparateThread {
+                    replaySession.playerStateHelper.handleItemAction(it.player, action)
+                }
+            }
+
+        }
+
+        MinecraftServer.getGlobalEventHandler().addEventCallback(InventoryPreClickEvent::class.java) {
+            it.player.instance!!.replaySession ?: return@addEventCallback
+
+            if (it.inventory == null)
+                it.isCancelled = true
+        }
+
         registerHandAnimation()
         registerPacketListener()
     }

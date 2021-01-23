@@ -16,7 +16,8 @@ object RecEntitiesPositionPlayer : ActionPlayer<RecEntitiesPosition> {
             val position = data.position.toMinestom()
             val velocity = data.velocity.toMinestom()
             entity.refreshPosition(position)
-            entity.setView(position.yaw, position.pitch)
+            entity.refreshView(position.yaw, position.pitch)
+            entity.askSynchronization()
             entity.velocity = velocity
         }
     }

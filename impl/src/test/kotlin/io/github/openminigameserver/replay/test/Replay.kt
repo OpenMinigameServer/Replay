@@ -28,8 +28,10 @@ fun main(args: Array<String>) {
 
     MinecraftServer.getGlobalEventHandler().addEventCallback(PlayerSkinInitEvent::class.java) {
         it.apply {
-            skin = profileCache.get(this.player.uuid) {
-                kotlin.runCatching { PlayerSkin.fromUuid(this.player.uuid.toString()) }.getOrNull()
+            kotlin.runCatching {
+                skin = profileCache.get(this.player.uuid) {
+                    kotlin.runCatching { PlayerSkin.fromUuid(this.player.uuid.toString()) }.getOrNull()
+                }
             }
         }
     }

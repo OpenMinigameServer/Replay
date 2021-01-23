@@ -12,7 +12,6 @@ import net.minestom.server.MinecraftServer
 import net.minestom.server.data.DataImpl
 import net.minestom.server.instance.Instance
 import net.minestom.server.timer.Task
-import net.minestom.server.utils.Position
 import net.minestom.server.utils.time.TimeUnit
 import java.util.*
 
@@ -33,7 +32,7 @@ class ReplayRecorder(
     }
 
     private fun buildTickerTask(): Task {
-        val entityPositions = mutableMapOf<UUID, Position>()
+        val entityPositions = mutableMapOf<UUID, RecordablePositionAndVector>()
 
         return MinecraftServer.getSchedulerManager().buildTask {
             if (!isRecording) return@buildTask
@@ -41,7 +40,7 @@ class ReplayRecorder(
         }.repeat(tickInterval.time, tickInterval.unit).schedule()
     }
 
-    private fun doEntityTick(entityPositions: MutableMap<UUID, Position>) {
+    private fun doEntityTick(entityPositions: MutableMap<UUID, RecordablePositionAndVector>) {
         val recordedPositions = mutableMapOf<RecordableEntity, RecordablePositionAndVector>()
 
         instance.entities.forEach { entity ->
@@ -49,10 +48,12 @@ class ReplayRecorder(
             val currentPosition = entity.position
 
             val oldPosition = entityPositions[entity.uuid]
-            if (oldPosition == null || oldPosition != currentPosition) {
+            val currentNewPosition =
+                RecordablePositionAndVector(currentPosition.toReplay(), entity.velocity.toReplay())
+            if (oldPosition == null || oldPosition != currentNewPosition || options.recordAllChanges) {
                 val replayEntity = replay.getEntityById(entity.entityId)
-                recordedPositions[replayEntity] = RecordablePositionAndVector(currentPosition.toReplay(), entity.velocity.toReplay())
-                entityPositions[entity.uuid] = entity.position.clone()
+                recordedPositions[replayEntity] = currentNewPosition
+                entityPositions[entity.uuid] = currentNewPosition
             }
         }
 

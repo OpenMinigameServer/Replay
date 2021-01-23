@@ -3,7 +3,9 @@ package io.github.openminigameserver.replay.player
 import io.github.openminigameserver.replay.TickTime
 import io.github.openminigameserver.replay.extensions.replaySession
 import io.github.openminigameserver.replay.model.Replay
+import io.github.openminigameserver.replay.model.recordable.EntityRecordableAction
 import io.github.openminigameserver.replay.model.recordable.RecordableAction
+import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.player.helpers.EntityManager
 import io.github.openminigameserver.replay.player.inventory.ReplaySessionPlayerStateHelper
 import kotlinx.datetime.Clock
@@ -15,15 +17,25 @@ import net.minestom.server.entity.Player
 import net.minestom.server.instance.Instance
 import net.minestom.server.network.packet.server.play.TeamsPacket
 import net.minestom.server.scoreboard.Team
-import net.minestom.server.timer.Task
 import net.minestom.server.utils.time.TimeUnit
 import java.util.*
 import kotlin.time.Duration
+import kotlin.time.seconds
 
-class ReplaySession(internal val instance: Instance, val replay: Replay, val viewers: MutableList<Player>, val tickTime: TickTime = TickTime(1L, TimeUnit.TICK)) {
-    private var tickerTask: Task? = null
+class ReplaySession constructor(
+    internal val instance: Instance,
+    val replay: Replay,
+    val viewers: MutableList<Player>,
+    private val tickTime: TickTime = TickTime(1L, TimeUnit.TICK)
+) {
+    var currentSkipDuration = 10.seconds
+    var isInitialized = false
 
-    private val playerStateHelper = ReplaySessionPlayerStateHelper(this)
+
+    val hasEnded: Boolean
+        get() = time == replay.duration
+
+    val playerStateHelper = ReplaySessionPlayerStateHelper(this)
     private val ticker: Runnable = ReplayTicker(this)
     private val actions = Stack<RecordableAction>()
 
@@ -31,7 +43,23 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
         resetActions()
     }
 
+    inline fun <reified T : RecordableAction> findPrevious(
+        targetDuration: Duration = Duration.ZERO,
+        condition: (T) -> Boolean = { true }
+    ): T? {
+        return replay.actions.filter { it.timestamp <= targetDuration }.lastOrNull { it is T && condition(it) } as? T
+    }
+
+    inline fun <reified T : EntityRecordableAction> findPreviousForEntity(
+        entity: RecordableEntity,
+        targetDuration: Duration = Duration.ZERO,
+        condition: (T) -> Boolean = { true }
+    ): T? {
+        return findPrevious(targetDuration) { it.entity == entity && condition(it) }
+    }
+
     private fun resetActions(targetDuration: Duration = Duration.ZERO) {
+        actions.clear()
         actions.addAll(replay.actions.filter { it.timestamp >= targetDuration }.sortedByDescending { it.timestamp })
     }
 
@@ -42,6 +70,10 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
         }
 
     var paused = true
+    set(value) {
+        field = value
+        updateReplayStateToViewers()
+    }
 
     var hasSpawnedEntities = false
 
@@ -55,15 +87,10 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
      * Valid regardless of [paused].
      */
     var time: Duration = Duration.ZERO
-        set(value) {
-            field = value
-            updateReplayStateToViewers()
-        }
 
     private fun updateReplayStateToViewers() {
-        playerStateHelper.updateViewerActionBar()
+        playerStateHelper.updateReplayStateToViewers()
     }
-
 
     private val viewerTeam: Team = MinecraftServer.getTeamManager().createBuilder("ReplayViewers")
         .prefix(ColoredText.of(ChatColor.GRAY, "[Viewer] "))
@@ -72,14 +99,21 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
         .build()
 
     fun init() {
+        isInitialized = true
         viewers.forEach { p ->
             viewerTeam.addMember(p.username)
         }
-        tickerTask = MinecraftServer.getSchedulerManager().buildTask(ticker).repeat(1, TimeUnit.TICK).schedule()
+
+        Thread {
+            while (isInitialized) {
+                ticker.run()
+                Thread.sleep(tickTime.unit.toMilliseconds(tickTime.time))
+            }
+        }.start()
     }
 
     private fun unInit() {
-        tickerTask?.cancel()
+        isInitialized = false;
         entityManager.removeAllEntities()
         instance.replaySession = null
         playerStateHelper.unInit()
@@ -109,7 +143,7 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
      */
     private var lastReplayTime = Duration.ZERO /* Used to detect if we're going backwards */
 
-    internal fun tick() {
+    internal fun tick(forceTick: Boolean = false, isTimeStep: Boolean = false) {
         if (!hasSpawnedEntities) {
             replay.entities.values.filter { it.spawnOnStart }.forEach {
                 entityManager.spawnEntity(it, it.spawnPosition!!)
@@ -119,7 +153,7 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
         }
 
         val currentTime = Clock.System.now()
-        if (paused) {
+        if (!forceTick && paused) {
             lastTickTime = currentTime
             return
         }
@@ -127,10 +161,12 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
         val timePassed = currentTime - lastTickTime
         val targetReplayTime = (this.time + (timePassed * speed))
 
-        if (targetReplayTime < lastReplayTime) {
-            // Need to restart replay to go backwards in time
-            replay.entities.values.forEach { entityManager.resetEntity(it) }
+        if (isTimeStep) {
+            replay.entities.values.forEach { entityManager.resetEntity(it, targetReplayTime) }
             resetActions(targetReplayTime)
+            nextAction = null
+            lastTickTime = currentTime
+            return
         }
 
         fun readNextAction() {
