@@ -11,24 +11,25 @@ import kotlin.time.Duration
 
 class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
 
+    private var isInitialized = true
+
     private var tickerTask: Task? = null
-    private val actionBarMessage
-        get() = buildString {
-            val spacing = " ".repeat(6)
-            val (minutes, seconds) = formatTime(session.time)
-            val (minutesFinal, secondsFinal) = formatTime(session.replay.duration)
+    private fun getActionBarMessage() = if (!isInitialized) "" else buildString {
+        val spacing = " ".repeat(6)
+        val (minutes, seconds) = formatTime(session.time)
+        val (minutesFinal, secondsFinal) = formatTime(session.replay.duration)
 
-            append(if (session.paused) ChatColor.RED.toString() + "Paused" else ChatColor.BRIGHT_GREEN.toString() + "Playing")
-            append(spacing)
+        append(if (session.paused) ChatColor.RED.toString() + "Paused" else ChatColor.BRIGHT_GREEN.toString() + "Playing")
+        append(spacing)
 
-            append("${ChatColor.YELLOW}$minutes:$seconds")
-            append(" / ")
-            append("${ChatColor.YELLOW}$minutesFinal:$secondsFinal")
+        append("${ChatColor.YELLOW}$minutes:$seconds")
+        append(" / ")
+        append("${ChatColor.YELLOW}$minutesFinal:$secondsFinal")
 
-            append(spacing)
-            append("${ChatColor.GOLD}x${"%.1f".format(session.speed, Locale.ENGLISH)}")
-            append(" ".repeat(2))
-        }
+        append(spacing)
+        append("${ChatColor.GOLD}x${"%.1f".format(session.speed, Locale.ENGLISH)}")
+        append(" ".repeat(2))
+    }
 
     private fun formatTime(time: Duration): Pair<String, String> {
         val currentTime = time.inSeconds
@@ -40,12 +41,12 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
     private fun formatResultToTime(currentTime: Double) = (currentTime).toInt().toString().padStart(2, '0')
 
     private val tickerTaskRunnable = Runnable {
-        updatePlayerActionBar()
+        updateViewerActionBar()
     }
 
-    internal fun updatePlayerActionBar() {
+    internal fun updateViewerActionBar() {
         session.viewers.forEach {
-            it.sendActionBarMessage(ColoredText.of(actionBarMessage))
+            it.sendActionBarMessage(ColoredText.of(getActionBarMessage()))
         }
     }
 
@@ -60,6 +61,8 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
     fun unInit() {
         tickerTask?.cancel()
         tickerTask = null
+        isInitialized = false
+        updateViewerActionBar()
     }
 
 }

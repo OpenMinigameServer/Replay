@@ -60,7 +60,7 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
         }
 
     private fun updateReplayStateToViewers() {
-        playerStateHelper.updatePlayerActionBar()
+        playerStateHelper.updateViewerActionBar()
     }
 
 
@@ -83,6 +83,7 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
         entityManager.removeAllEntities()
         instance.replaySession = null
         playerStateHelper.unInit()
+        viewers.forEach { removeViewer(it) }
     }
 
     fun removeViewer(player: Player) {
@@ -160,7 +161,24 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
     }
 
     val entityManager = EntityManager(this)
-    internal fun playAction(action: RecordableAction) {
-        ActionPlayerManager.getActionPlayer(action).play(action, this, instance, viewers)
+    private fun playAction(action: RecordableAction) {
+        try {
+            ActionPlayerManager.getActionPlayer(action).play(action, this, instance, viewers)
+        } catch (e: Throwable) {
+            e.printStackTrace()
+
+            paused = true
+            viewers.forEach {
+                it.sendMessage(
+                    ColoredText.of(
+                        ChatColor.RED,
+                        "An error occurred while playing your replay. Please contact an administrator for support."
+                    )
+                )
+            }
+
+            //Unload everything
+            unInit()
+        }
     }
 }
