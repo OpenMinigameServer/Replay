@@ -12,7 +12,8 @@ abstract class CompletableFutureReplayStorageSystem : ReplayStorageSystem {
     abstract fun saveReplayCompletable(replay: Replay): CompletableFuture<Void>
 
     override suspend fun getReplaysForPlayer(player: UUID): List<UUID> {
-        return getReplaysForPlayerCompletable(player).await()    }
+        return getReplaysForPlayerCompletable(player).await()
+    }
 
     override suspend fun loadReplay(uuid: UUID): Replay? {
         return loadReplayCompletable(uuid).await()

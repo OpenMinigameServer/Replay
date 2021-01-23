@@ -7,4 +7,4 @@ enum class Hand {
     MAIN, OFF
 }
 
-class RecPlayerHandAnimation(val hand: Hand, entity: RecordableEntity): EntityRecordableAction(entity)
+class RecPlayerHandAnimation(val hand: Hand, entity: RecordableEntity) : EntityRecordableAction(entity)

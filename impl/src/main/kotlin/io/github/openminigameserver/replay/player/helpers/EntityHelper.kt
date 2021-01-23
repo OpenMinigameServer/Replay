@@ -16,8 +16,7 @@ internal object EntityHelper {
             ReplayPlayerEntity(UUID.randomUUID(), entityData.userName, entityData.metadata).also {
                 it.skin = entityData.skin?.toMinestom()
             }
-        }
-        else object : Entity(type, spawnPosition) {
+        } else object : Entity(type, spawnPosition) {
             override fun update(time: Long) {
             }
 

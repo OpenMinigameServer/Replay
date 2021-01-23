@@ -7,4 +7,5 @@ import io.github.openminigameserver.replay.model.recordable.entity.RecordableEnt
 
 class RecEntitiesPosition(
     @RecordableEntityAsKey
-    val positions: MutableMap<RecordableEntity, RecordablePosition>) : RecordableAction()
+    val positions: MutableMap<RecordableEntity, RecordablePosition>
+) : RecordableAction()

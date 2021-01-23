@@ -14,13 +14,16 @@ class EntityManager(var session: ReplaySession) {
     private val replayEntities = mutableMapOf<Int, Entity>()
 
     fun resetEntity(entity: RecordableEntity) {
-        getNativeEntity(entity)?.let { entity.spawnPosition?.toMinestom()?.let { spawnPos -> refreshPosition(it, spawnPos) } }
+        getNativeEntity(entity)?.let {
+            entity.spawnPosition?.toMinestom()?.let { spawnPos -> refreshPosition(it, spawnPos) }
+        }
     }
 
     fun spawnEntity(entity: RecordableEntity, position: RecordablePosition) {
 
         val spawnPosition = position.toMinestom()
-        val minestomEntity = EntityHelper.createEntity(Registries.getEntityType(entity.type)!!, spawnPosition, entity.entityData)
+        val minestomEntity =
+            EntityHelper.createEntity(Registries.getEntityType(entity.type)!!, spawnPosition, entity.entityData)
         replayEntities[entity.id] = minestomEntity
 
         if (minestomEntity.instance != session.instance)

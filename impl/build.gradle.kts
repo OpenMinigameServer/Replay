@@ -1,6 +1,3 @@
-
-
-
 dependencies {
     implementation(project(":model"))
     compileOnly(minestom("c5d56ae820"))

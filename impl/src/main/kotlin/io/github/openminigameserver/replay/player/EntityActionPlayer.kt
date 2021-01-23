@@ -5,7 +5,7 @@ import net.minestom.server.entity.Entity
 import net.minestom.server.entity.Player
 import net.minestom.server.instance.Instance
 
-abstract class EntityActionPlayer<T: EntityRecordableAction> : ActionPlayer<T> {
+abstract class EntityActionPlayer<T : EntityRecordableAction> : ActionPlayer<T> {
     override fun play(action: T, session: ReplaySession, instance: Instance, viewers: List<Player>) {
         val entity = session.entityManager.getNativeEntity(action.entity)
         if (entity != null) {

@@ -25,10 +25,17 @@ object StopRecordingCommand : Command("stoprecording") {
                 ReplayManager.storageSystem.saveReplay(recorder.replay)
                 val message = recorder.replay.actions.groupBy { it.javaClass.simpleName }
                     .map { ChatColor.GOLD.toString() + "${it.key}: ${it.value.count()}" }.joinToString("\n")
-                sender.sendMessage(RichMessage.of(ColoredText.of(ChatColor.GOLD, "Your replay has been created! Click here to play it!")).setClickEvent(
-                    ChatClickEvent.runCommand("/replay play ${recorder.replay.id}")
+                sender.sendMessage(
+                    RichMessage.of(
+                        ColoredText.of(
+                            ChatColor.GOLD,
+                            "Your replay has been created! Click here to play it!"
+                        )
+                    ).setClickEvent(
+                        ChatClickEvent.runCommand("/replay play ${recorder.replay.id}")
+                    )
+                        .setHoverEvent(ChatHoverEvent.showText(ColoredText.of(message)))
                 )
-                    .setHoverEvent(ChatHoverEvent.showText(ColoredText.of(message))))
             }
 
         }

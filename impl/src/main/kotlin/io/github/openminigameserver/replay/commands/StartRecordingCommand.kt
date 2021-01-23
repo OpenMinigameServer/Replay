@@ -17,9 +17,13 @@ object StartRecordingCommand : Command("startrecording") {
             if (sender !is Player) return@setDefaultExecutor
 
             sender.sendMessage(ChatColor.BRIGHT_GREEN.toString() + "Recording started.")
-            sender.sendMessage(RichMessage.of(ColoredText.of(ChatColor.GOLD, "Click here to stop recording.")).setClickEvent(
-                ChatClickEvent.runCommand("/stoprecording")))
-            val recorder = ReplayRecorder(sender.instance!!, tickInterval = (MinecraftServer.TICK_MS * 2L) to TimeUnit.MILLISECOND)
+            sender.sendMessage(
+                RichMessage.of(ColoredText.of(ChatColor.GOLD, "Click here to stop recording.")).setClickEvent(
+                    ChatClickEvent.runCommand("/stoprecording")
+                )
+            )
+            val recorder =
+                ReplayRecorder(sender.instance!!, tickInterval = (MinecraftServer.TICK_MS * 2L) to TimeUnit.MILLISECOND)
             sender.recorder = recorder
 
             recorder.startRecording()

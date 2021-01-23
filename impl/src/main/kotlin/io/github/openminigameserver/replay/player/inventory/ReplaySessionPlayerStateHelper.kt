@@ -62,7 +62,9 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
 
     private fun teleportViewers() {
         val entities = session.replay.entities.values
-        val targetEntity = entities.firstOrNull { (it.entityData as? PlayerEntityData)?.userName == session.viewers.first().username } ?: entities.firstOrNull()
+        val targetEntity =
+            entities.firstOrNull { (it.entityData as? PlayerEntityData)?.userName == session.viewers.first().username }
+                ?: entities.firstOrNull()
         val targetEntityMinestom = targetEntity?.let { session.entityManager.getNativeEntity(it) }
 
         if (targetEntityMinestom != null) {

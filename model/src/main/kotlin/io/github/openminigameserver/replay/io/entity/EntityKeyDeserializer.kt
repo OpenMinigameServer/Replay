@@ -15,7 +15,8 @@ class EntityKeyDeserializer : KeyDeserializer() {
             parent = parent.parent
         }
 
-        val currentNodeMethod = MethodHandles.lookup().bind(parent, "currentNode", MethodType.methodType(JsonNode::class.java))
+        val currentNodeMethod =
+            MethodHandles.lookup().bind(parent, "currentNode", MethodType.methodType(JsonNode::class.java))
         val currentNode = currentNodeMethod.invoke() as? JsonNode ?: throw Exception("Unable to find parent node")
 
         val entities = currentNode.get(Replay::entities.name) ?: throw Exception("Unable to find entity with Id $key")

@@ -11,7 +11,12 @@ import java.io.File
 class ReplayExtension : Extension() {
     companion object {
         @JvmStatic
-        val dataFolder by lazy { File(MinecraftServer.getExtensionManager().extensionFolder, "Replay").also { it.mkdirs() } }
+        val dataFolder by lazy {
+            File(
+                MinecraftServer.getExtensionManager().extensionFolder,
+                "Replay"
+            ).also { it.mkdirs() }
+        }
     }
 
     override fun initialize() {

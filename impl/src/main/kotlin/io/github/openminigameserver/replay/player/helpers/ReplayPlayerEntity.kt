@@ -9,7 +9,8 @@ import java.net.SocketAddress
 import java.util.*
 import java.util.function.Consumer
 
-class ReplayPlayerEntity(uuid: UUID, username: String, private val firstMetadata: ByteArray) : Player(uuid, "$username§r".take(16), ReplayPlayerConnection) {
+class ReplayPlayerEntity(uuid: UUID, username: String, private val firstMetadata: ByteArray) :
+    Player(uuid, "$username§r".take(16), ReplayPlayerConnection) {
     init {
         settings.refresh(Locale.ENGLISH.toLanguageTag(), 0, ChatMode.ENABLED, true, 127, MainHand.RIGHT)
     }
