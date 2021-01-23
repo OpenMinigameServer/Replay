@@ -7,7 +7,7 @@ import io.github.openminigameserver.replay.model.recordable.EntityRecordableActi
 import io.github.openminigameserver.replay.model.recordable.RecordableAction
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.player.helpers.EntityManager
-import io.github.openminigameserver.replay.player.inventory.ReplaySessionPlayerStateHelper
+import io.github.openminigameserver.replay.player.statehelper.ReplaySessionPlayerStateHelper
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import net.minestom.server.MinecraftServer
@@ -122,6 +122,7 @@ class ReplaySession constructor(
 
     fun removeViewer(player: Player) {
         entityManager.removeEntityViewer(player)
+        playerStateHelper.removeViewer(player)
         viewers.remove(player)
 
         if (viewerTeam.members.contains(player.username))

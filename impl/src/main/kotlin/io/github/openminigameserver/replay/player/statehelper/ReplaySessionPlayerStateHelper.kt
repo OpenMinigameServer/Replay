@@ -1,7 +1,9 @@
-package io.github.openminigameserver.replay.player.inventory
+package io.github.openminigameserver.replay.player.statehelper
 
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
 import io.github.openminigameserver.replay.player.ReplaySession
+import io.github.openminigameserver.replay.player.statehelper.constants.*
+import io.github.openminigameserver.replay.player.statehelper.utils.PlayerData
 import net.minestom.server.MinecraftServer
 import net.minestom.server.chat.ChatColor
 import net.minestom.server.chat.ColoredText
@@ -86,26 +88,32 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
         viewers.forEach { it.playSound(Sound.ENTITY_PLAYER_LEVELUP, SoundCategory.PLAYERS, 1f, 1f) }
     }
 
+    private val oldData = mutableMapOf<UUID, PlayerData>()
+    fun removeViewer(player: Player) {
+        oldData[player.uuid]?.apply(player)
+    }
+
     private fun initializePlayerControlItems() {
-        session.viewers.forEach {
-            it.inventory.clear()
+        session.viewers.forEach { p: Player ->
+            oldData[p.uuid] = PlayerData(p)
+            p.inventory.clear()
         }
+
         host?.let {
+            it.setHeldItemSlot(SLOT_PLAY_PAUSE.toByte())
             updateItems(it)
         }
 
     }
 
     private fun updateItems(it: Player) {
-        //0 1 2 3 4 5 6 7 8
-        //    2 3 4 5 6
-        it.inventory.setItemStack(2, PlayerHeadsItems.getDecreaseSpeedItem())
-        it.inventory.setItemStack(3, PlayerHeadsItems.getStepBackwardsItem(session.currentSkipDuration))
+        it.inventory.setItemStack(SLOT_DECREASE_SPEED, PlayerHeadsItems.getDecreaseSpeedItem())
+        it.inventory.setItemStack(SLOT_STEP_BACKWARDS, PlayerHeadsItems.getStepBackwardsItem(session.currentSkipDuration))
 
-        it.inventory.setItemStack(4, PlayerHeadsItems.getPlayPauseItem(session.paused, session.hasEnded))
+        it.inventory.setItemStack(SLOT_PLAY_PAUSE, PlayerHeadsItems.getPlayPauseItem(session.paused, session.hasEnded))
 
-        it.inventory.setItemStack(5, PlayerHeadsItems.getStepForwardItem(session.currentSkipDuration))
-        it.inventory.setItemStack(6, PlayerHeadsItems.getIncreaseSpeedItem())
+        it.inventory.setItemStack(SLOT_STEP_FORWARD, PlayerHeadsItems.getStepForwardItem(session.currentSkipDuration))
+        it.inventory.setItemStack(SLOT_INCREASE_SPEED, PlayerHeadsItems.getIncreaseSpeedItem())
     }
 
     val skipSpeeds = arrayOf(1, 5, 10, 30, 60)

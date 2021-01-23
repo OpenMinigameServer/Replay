@@ -1,5 +1,6 @@
-package io.github.openminigameserver.replay.player.inventory
+package io.github.openminigameserver.replay.player.statehelper.constants
 
+import io.github.openminigameserver.replay.player.statehelper.ControlItemAction
 import net.minestom.server.chat.ChatColor
 import net.minestom.server.chat.ColoredText
 import net.minestom.server.data.DataImpl

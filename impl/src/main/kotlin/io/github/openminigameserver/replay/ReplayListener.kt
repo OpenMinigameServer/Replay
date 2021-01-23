@@ -3,8 +3,8 @@ package io.github.openminigameserver.replay
 import io.github.openminigameserver.replay.extensions.*
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntityMetadata
 import io.github.openminigameserver.replay.model.recordable.impl.RecPlayerHandAnimation
-import io.github.openminigameserver.replay.player.inventory.ControlItemAction
-import io.github.openminigameserver.replay.player.inventory.controlItemAction
+import io.github.openminigameserver.replay.player.statehelper.ControlItemAction
+import io.github.openminigameserver.replay.player.statehelper.constants.controlItemAction
 import net.minestom.server.MinecraftServer
 import net.minestom.server.event.inventory.InventoryPreClickEvent
 import net.minestom.server.event.player.PlayerHandAnimationEvent

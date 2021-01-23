@@ -1,4 +1,4 @@
-package io.github.openminigameserver.replay.player.inventory
+package io.github.openminigameserver.replay.player.statehelper.constants
 
 import net.minestom.server.entity.PlayerSkin
 
