@@ -4,6 +4,7 @@ import io.github.openminigameserver.replay.extensions.replaySession
 import io.github.openminigameserver.replay.model.Replay
 import io.github.openminigameserver.replay.model.recordable.RecordableAction
 import io.github.openminigameserver.replay.player.helpers.EntityManager
+import io.github.openminigameserver.replay.player.inventory.ReplaySessionPlayerStateHelper
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import net.minestom.server.MinecraftServer
@@ -21,6 +22,7 @@ import kotlin.time.Duration
 class ReplaySession(internal val instance: Instance, val replay: Replay, val viewers: MutableList<Player>) {
     private var tickerTask: Task? = null
 
+    private val playerStateHelper = ReplaySessionPlayerStateHelper(this)
     private val ticker: Runnable = ReplayTicker(this)
     private val actions = Stack<RecordableAction>()
 
@@ -33,6 +35,11 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
     }
 
     var speed: Double = 1.0
+        set(value) {
+            field = value
+            updateReplayStateToViewers()
+        }
+
     var paused = true
 
     var hasSpawnedEntities = false
@@ -46,13 +53,15 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
      * Current replay time.
      * Valid regardless of [paused].
      */
-    private var currentReplayTime: Duration = Duration.ZERO
-
-    var time: Duration
-        get() = currentReplayTime
+    var time: Duration = Duration.ZERO
         set(value) {
-            currentReplayTime = value
+            field = value
+            updateReplayStateToViewers()
         }
+
+    private fun updateReplayStateToViewers() {
+        playerStateHelper.updatePlayerActionBar()
+    }
 
 
     private val viewerTeam: Team = MinecraftServer.getTeamManager().createBuilder("ReplayViewers")
@@ -66,6 +75,14 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
             viewerTeam.addMember(p.username)
         }
         tickerTask = MinecraftServer.getSchedulerManager().buildTask(ticker).repeat(10, TimeUnit.MILLISECOND).schedule()
+        playerStateHelper.init()
+    }
+
+    private fun unInit() {
+        tickerTask?.cancel()
+        entityManager.removeAllEntities()
+        instance.replaySession = null
+        playerStateHelper.unInit()
     }
 
     fun removeViewer(player: Player) {
@@ -78,12 +95,6 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
         if (viewers.isEmpty()) {
             unInit()
         }
-    }
-
-    private fun unInit() {
-        tickerTask?.cancel()
-        entityManager.removeAllEntities()
-        instance.replaySession = null
     }
 
     /**
@@ -111,7 +122,7 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
         }
 
         val timePassed = currentTime - lastTickTime
-        val targetReplayTime = (currentReplayTime + (timePassed * speed))
+        val targetReplayTime = (this.time + (timePassed * speed))
 
         if (targetReplayTime < lastReplayTime) {
             // Need to restart replay to go backwards in time
@@ -130,23 +141,23 @@ class ReplaySession(internal val instance: Instance, val replay: Replay, val vie
                     // If still null, then we reached end of replay
                     paused = true
                     resetActions()
-                    currentReplayTime = Duration.ZERO
+                    this.time = Duration.ZERO
 
                     return
                 }
             } else {
                 if (nextAction!!.timestamp < targetReplayTime) {
                     playAction(nextAction!!)
-                    currentReplayTime = nextAction!!.timestamp
+                    this.time = nextAction!!.timestamp
                     nextAction = null
                 } else {
-                    currentReplayTime += timePassed * speed
+                    this.time += timePassed * speed
                     break
                 }
             }
         }
         lastTickTime = currentTime
-        lastReplayTime = currentReplayTime
+        lastReplayTime = this.time
     }
 
     val entityManager = EntityManager(this)
