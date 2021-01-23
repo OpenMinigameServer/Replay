@@ -65,7 +65,7 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
         host?.let { updateItems(it) }
     }
 
-    internal fun updateViewersActionBar() {
+    private fun updateViewersActionBar() {
         session.viewers.forEach {
             it.sendActionBarMessage(ColoredText.of(getActionBarMessage()))
         }
@@ -78,7 +78,7 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
         tickerTask =
             MinecraftServer.getSchedulerManager()
                 .buildTask(tickerTaskRunnable)
-                .repeat(1, TimeUnit.SECOND)
+                .repeat(250, TimeUnit.MILLISECOND)
                 .schedule()
     }
 
@@ -102,7 +102,7 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
         it.inventory.setItemStack(2, PlayerHeadsItems.getDecreaseSpeedItem())
         it.inventory.setItemStack(3, PlayerHeadsItems.getStepBackwardsItem(session.currentSkipDuration))
 
-        it.inventory.setItemStack(4, PlayerHeadsItems.getPlayPauseItem(session.paused))
+        it.inventory.setItemStack(4, PlayerHeadsItems.getPlayPauseItem(session.paused, session.hasEnded))
 
         it.inventory.setItemStack(5, PlayerHeadsItems.getStepForwardItem(session.currentSkipDuration))
         it.inventory.setItemStack(6, PlayerHeadsItems.getIncreaseSpeedItem())
@@ -123,14 +123,14 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
                 session.paused = true
                 sendSubtitleToHost("⏸")
             }
-            ControlItemAction.RESUME -> {
+            ControlItemAction.RESUME, ControlItemAction.PLAY_AGAIN -> {
                 val hasEnded = session.hasEnded
                 if (hasEnded) {
                     session.time = Duration.ZERO
                 }
                 session.paused = false
                 if (hasEnded)
-                    session.tick(isTimeStep = true)
+                    session.tick(forceTick = action == ControlItemAction.PLAY_AGAIN, isTimeStep = true)
 
                 sendSubtitleToHost("⏵")
             }
@@ -160,6 +160,7 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
             (session.time + duration).coerceIn(Duration.ZERO, session.replay.duration)
         sendSubtitleToHost(if (isForward) "⏩" else "⏪")
         session.tick(forceTick = true, isTimeStep = true)
+        updateReplayStateToViewers()
     }
 
     private fun sendSubtitleToHost(message: String) {

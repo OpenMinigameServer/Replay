@@ -70,10 +70,10 @@ class ReplaySession constructor(
         }
 
     var paused = true
-    set(value) {
-        field = value
-        updateReplayStateToViewers()
-    }
+        set(value) {
+            field = value
+            updateReplayStateToViewers()
+        }
 
     var hasSpawnedEntities = false
 
@@ -178,17 +178,18 @@ class ReplaySession constructor(
                 readNextAction()
                 if (nextAction == null) {
                     // If still null, then we reached end of replay
-                    paused = true
                     time = replay.duration
+                    paused = true
 
                     return
                 }
             } else {
                 if (nextAction!!.timestamp < targetReplayTime) {
                     playAction(nextAction!!)
-                    this.time = nextAction!!.timestamp
+                    this.time = nextAction?.timestamp ?: Duration.ZERO
                     nextAction = null
                 } else {
+
                     this.time += timePassed * speed
                     break
                 }

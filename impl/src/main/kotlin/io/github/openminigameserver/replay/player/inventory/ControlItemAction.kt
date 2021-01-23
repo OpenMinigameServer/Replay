@@ -11,5 +11,7 @@ enum class ControlItemAction {
     RESUME,
     STEP_FORWARD,
 
-    SPEED_UP
+    SPEED_UP,
+
+    PLAY_AGAIN
 }

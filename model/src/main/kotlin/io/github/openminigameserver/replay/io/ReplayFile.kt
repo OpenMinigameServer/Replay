@@ -11,7 +11,7 @@ import com.github.luben.zstd.ZstdOutputStream
 import io.github.openminigameserver.replay.model.Replay
 import java.io.File
 
-class ReplayFile(private val file: File, var replay: Replay? = null, val isCompressed: Boolean = true) {
+class ReplayFile(private val file: File, var replay: Replay? = null, private val isCompressed: Boolean = true) {
 
     companion object {
         private val mapper = SmileMapper().apply {

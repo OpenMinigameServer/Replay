@@ -22,7 +22,13 @@ var ItemStack.controlItemAction: ControlItemAction
     }
 
 object PlayerHeadsItems {
-    fun getPlayPauseItem(paused: Boolean): ItemStack {
+    fun getPlayPauseItem(paused: Boolean, finished: Boolean): ItemStack {
+        if (finished) {
+            return ItemStack(Material.LIME_DYE, 1).apply {
+                displayName = ColoredText.of(ChatColor.BRIGHT_GREEN, "Play Recording Again")
+                controlItemAction = ControlItemAction.PLAY_AGAIN
+            }
+        }
         return ItemStack(if (paused) Material.MAGENTA_DYE else Material.GRAY_DYE, 1).apply {
             displayName = ColoredText.of(ChatColor.BRIGHT_GREEN, "Click to ${if (paused) "Resume" else "Pause"}")
             controlItemAction = if (paused) ControlItemAction.RESUME else ControlItemAction.PAUSE
