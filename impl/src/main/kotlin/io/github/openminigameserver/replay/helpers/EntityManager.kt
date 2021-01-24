@@ -5,6 +5,8 @@ import io.github.openminigameserver.replay.model.recordable.RecordablePosition
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntitiesPosition
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntityMove
+import io.github.openminigameserver.replay.model.recordable.impl.RecEntityRemove
+import io.github.openminigameserver.replay.model.recordable.impl.RecEntitySpawn
 import io.github.openminigameserver.replay.player.ReplaySession
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.Player
@@ -17,23 +19,44 @@ class EntityManager(var session: ReplaySession) {
     //Replay entity id
     private val replayEntities = mutableMapOf<Int, Entity>()
 
-    fun resetEntity(entity: RecordableEntity, targetReplayTime: Duration) {
+    fun resetEntity(entity: RecordableEntity, startTime: Duration, targetReplayTime: Duration) {
         getNativeEntity(entity)?.let {
             it.remove()
             it.askSynchronization()
+
+            val spawnAction = session.findActionsForEntity<RecEntitySpawn>(
+                entity = entity,
+                startDuration = startTime,
+                targetDuration = targetReplayTime
+            )
+            val removeAction = session.findActionsForEntity<RecEntityRemove>(
+                entity = entity,
+                startDuration = startTime,
+                targetDuration = targetReplayTime
+            )
+            //Check if Entity (has been spawned at start) or (has been spawned somewhere before and has not been removed before)
+            val shouldSpawn = entity.spawnOnStart || (spawnAction != null && removeAction == null)
+
+            //Find actual position
             var finalPos = entity.spawnPosition
-            session.findPreviousForEntity<RecEntityMove>(entity, targetReplayTime)?.let { finalPos = it.data.position }
-            session.findPrevious<RecEntitiesPosition>(targetReplayTime) { it.positions.containsKey(entity) }
+            session.findActionsForEntity<RecEntityMove>(startTime, entity, targetReplayTime)
+                ?.let { finalPos = it.data.position }
+            session.findActions<RecEntitiesPosition>(startTime, targetReplayTime) { it.positions.containsKey(entity) }
                 ?.let { finalPos = it.positions[entity]!!.position }
+
+//            println("${entity.type} ${entity.id} $shouldSpawn")
             it.velocity = Vector(0F, 0F, 0F)
             finalPos?.let { previousLoc ->
-                this.spawnEntity(entity, previousLoc)
+                if (shouldSpawn) {
+                    this.spawnEntity(entity, previousLoc)
+                }
             }
         }
     }
 
     fun spawnEntity(entity: RecordableEntity, position: RecordablePosition) {
 
+        replayEntities[entity.id]?.takeIf { !it.isRemoved }?.remove()
         val spawnPosition = position.toMinestom()
         val minestomEntity =
             EntityHelper.createEntity(Registries.getEntityType(entity.type)!!, spawnPosition, entity.entityData)
@@ -65,7 +88,8 @@ class EntityManager(var session: ReplaySession) {
 
     fun removeAllEntities() {
         replayEntities.forEach {
-            it.value.remove()
+            if (it.value !is Player || it.value is ReplayPlayerEntity)
+                it.value.remove()
         }
         replayEntities.clear()
     }

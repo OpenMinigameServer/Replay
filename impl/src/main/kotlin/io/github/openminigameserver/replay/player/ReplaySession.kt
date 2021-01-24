@@ -31,11 +31,11 @@ class ReplaySession constructor(
     var currentSkipDuration = 10.seconds
     var isInitialized = false
 
-
     val hasEnded: Boolean
         get() = time == replay.duration
 
     val playerStateHelper = ReplaySessionPlayerStateHelper(this)
+    private val playerTimeStepHelper = ReplaySessionTimeStepHelper(this)
     private val ticker: Runnable = ReplayTicker(this)
     private val actions = Stack<RecordableAction>()
 
@@ -43,19 +43,41 @@ class ReplaySession constructor(
         resetActions()
     }
 
-    inline fun <reified T : RecordableAction> findPrevious(
+    inline fun <reified T : RecordableAction> findActions(
+        startDuration: Duration = time,
         targetDuration: Duration = Duration.ZERO,
         condition: (T) -> Boolean = { true }
     ): T? {
-        return replay.actions.filter { it.timestamp <= targetDuration }.lastOrNull { it is T && condition(it) } as? T
+        return replay.actions.filter { it.timestamp in startDuration..targetDuration }.lastOrNull { it is T && condition(it) } as? T
     }
 
-    inline fun <reified T : EntityRecordableAction> findPreviousForEntity(
+
+    inline fun <reified T : RecordableAction> findManyActionsGeneric(
+        startDuration: Duration = time,
+        targetDuration: Duration = Duration.ZERO,
+        crossinline condition: (T) -> Boolean = { true }
+    ): List<T> {
+        return findManyActions(startDuration, targetDuration) {
+            it is T && condition(it)
+        }.map { it as T }
+    }
+
+    fun findManyActions(
+        startDuration: Duration = time,
+        targetDuration: Duration = Duration.ZERO,
+        condition: (RecordableAction) -> Boolean = { true }
+    ): List<RecordableAction> {
+        val actions = replay.actions.filter { it.timestamp in startDuration..targetDuration }
+        return actions.filter { condition(it) }
+    }
+
+    inline fun <reified T : EntityRecordableAction> findActionsForEntity(
+        startDuration: Duration = time,
         entity: RecordableEntity,
         targetDuration: Duration = Duration.ZERO,
         condition: (T) -> Boolean = { true }
     ): T? {
-        return findPrevious(targetDuration) { it.entity == entity && condition(it) }
+        return findActions(startDuration, targetDuration) { it.entity == entity && condition(it) }
     }
 
     private fun resetActions(targetDuration: Duration = Duration.ZERO) {
@@ -113,7 +135,7 @@ class ReplaySession constructor(
     }
 
     private fun unInit() {
-        isInitialized = false;
+        isInitialized = false
         entityManager.removeAllEntities()
         instance.replaySession = null
         playerStateHelper.unInit()
@@ -121,16 +143,22 @@ class ReplaySession constructor(
     }
 
     fun removeViewer(player: Player) {
-        entityManager.removeEntityViewer(player)
-        playerStateHelper.removeViewer(player)
-        viewers.remove(player)
+        try {
+            entityManager.removeEntityViewer(player)
+            playerStateHelper.removeViewer(player)
 
-        if (viewerTeam.members.contains(player.username))
-            viewerTeam.removeMember(player.username)
+            if (viewerTeam.members.contains(player.username)) {
+                viewerTeam.removeMember(player.username)
+            }
 
-        player.sendActionBarMessage(ColoredText.of(""))
-        if (viewers.isEmpty()) {
-            unInit()
+            player.sendActionBarMessage(ColoredText.of(""))
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        } finally {
+            viewers.remove(player)
+            if (viewers.isEmpty()) {
+                unInit()
+            }
         }
     }
 
@@ -148,8 +176,8 @@ class ReplaySession constructor(
         if (!hasSpawnedEntities) {
             replay.entities.values.filter { it.spawnOnStart }.forEach {
                 entityManager.spawnEntity(it, it.spawnPosition!!)
-                playerStateHelper.init()
             }
+            playerStateHelper.init()
             hasSpawnedEntities = true
         }
 
@@ -163,7 +191,7 @@ class ReplaySession constructor(
         val targetReplayTime = (this.time + (timePassed * speed))
 
         if (isTimeStep) {
-            replay.entities.values.forEach { entityManager.resetEntity(it, targetReplayTime) }
+            playerTimeStepHelper.performTimeStep(lastReplayTime, targetReplayTime)
             resetActions(targetReplayTime)
             nextAction = null
             lastTickTime = currentTime
@@ -201,7 +229,7 @@ class ReplaySession constructor(
     }
 
     val entityManager = EntityManager(this)
-    private fun playAction(action: RecordableAction) {
+    internal fun playAction(action: RecordableAction) {
         try {
             ActionPlayerManager.getActionPlayer(action).play(action, this, instance, viewers)
         } catch (e: Throwable) {

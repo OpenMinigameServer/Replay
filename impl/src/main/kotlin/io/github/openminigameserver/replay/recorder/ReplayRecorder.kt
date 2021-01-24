@@ -54,7 +54,7 @@ class ReplayRecorder(
         removeEntityFromInstanceHandler = {
             val minestomEntity = it.entity
             val entity = replay.getEntityById(minestomEntity.entityId)
-            replay.addAction(RecEntityRemove(entity))
+            replay.addAction(RecEntityRemove(minestomEntity.position.toReplay(), entity))
         }
 
         entitySpawnHandler = {

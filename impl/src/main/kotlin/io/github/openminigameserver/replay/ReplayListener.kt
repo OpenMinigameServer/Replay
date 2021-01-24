@@ -1,11 +1,13 @@
 package io.github.openminigameserver.replay
 
 import io.github.openminigameserver.replay.extensions.*
+import io.github.openminigameserver.replay.helpers.ReplayPlayerEntity
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntityMetadata
 import io.github.openminigameserver.replay.model.recordable.impl.RecPlayerHandAnimation
 import io.github.openminigameserver.replay.player.statehelper.ControlItemAction
 import io.github.openminigameserver.replay.player.statehelper.constants.controlItemAction
 import net.minestom.server.MinecraftServer
+import net.minestom.server.entity.fakeplayer.FakePlayer
 import net.minestom.server.event.inventory.InventoryPreClickEvent
 import net.minestom.server.event.player.PlayerDisconnectEvent
 import net.minestom.server.event.player.PlayerHandAnimationEvent
@@ -16,7 +18,8 @@ import net.minestom.server.network.packet.server.play.EntityMetaDataPacket
 object ReplayListener {
 
     private val playerDisconnectHandler: (event: PlayerDisconnectEvent) -> Unit = {
-        it.player.instance!!.replaySession?.removeViewer(it.player)
+        if (it.player !is FakePlayer && it.player !is ReplayPlayerEntity)
+            it.player.instance!!.replaySession?.removeViewer(it.player)
     }
 
     private val playerSwapItemEvent: (event: PlayerSwapItemEvent) -> Unit = {

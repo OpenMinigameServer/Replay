@@ -60,15 +60,15 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
     private fun formatResultToTime(currentTime: Double) = (currentTime).toInt().toString().padStart(2, '0')
 
     private val tickerTaskRunnable = Runnable {
-        updateViewersActionBar()
+        updateViewersActionBar(session.viewers.toMutableList())
     }
 
     private fun updateAllItems() {
         host?.let { updateItems(it) }
     }
 
-    private fun updateViewersActionBar() {
-        session.viewers.forEach {
+    private fun updateViewersActionBar(viewers: MutableList<Player>) {
+        viewers.forEach {
             it.sendActionBarMessage(ColoredText.of(getActionBarMessage()))
         }
     }
@@ -191,11 +191,11 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
         tickerTask?.cancel()
         tickerTask = null
         isInitialized = false
-        updateViewersActionBar()
+        updateViewersActionBar(session.viewers)
     }
 
     fun updateReplayStateToViewers() {
-        updateViewersActionBar()
+        updateViewersActionBar(session.viewers)
         updateAllItems()
     }
 
