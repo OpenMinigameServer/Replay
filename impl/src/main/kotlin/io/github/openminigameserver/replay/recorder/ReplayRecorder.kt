@@ -7,9 +7,13 @@ import io.github.openminigameserver.replay.model.recordable.RecordablePositionAn
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntitiesPosition
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntityMove
+import io.github.openminigameserver.replay.model.recordable.impl.RecEntityRemove
+import io.github.openminigameserver.replay.model.recordable.impl.RecEntitySpawn
 import io.github.openminigameserver.replay.recorder.PositionRecordType.*
 import net.minestom.server.MinecraftServer
 import net.minestom.server.data.DataImpl
+import net.minestom.server.event.entity.EntitySpawnEvent
+import net.minestom.server.event.instance.RemoveEntityFromInstanceEvent
 import net.minestom.server.instance.Instance
 import net.minestom.server.timer.Task
 import net.minestom.server.utils.time.TimeUnit
@@ -29,6 +33,36 @@ class ReplayRecorder(
             instance.data = DataImpl()
         }
         tickerTask = buildTickerTask()
+        registerListeners()
+    }
+
+
+    lateinit var entitySpawnHandler: (event: EntitySpawnEvent) -> Unit
+    lateinit var removeEntityFromInstanceHandler: (event: RemoveEntityFromInstanceEvent) -> Unit
+    private fun registerListeners() {
+        initListeners()
+        instance.addEventCallback(EntitySpawnEvent::class.java, entitySpawnHandler)
+        instance.addEventCallback(RemoveEntityFromInstanceEvent::class.java, removeEntityFromInstanceHandler)
+    }
+
+    private fun removeListeners() {
+        instance.removeEventCallback(EntitySpawnEvent::class.java, entitySpawnHandler)
+        instance.removeEventCallback(RemoveEntityFromInstanceEvent::class.java, removeEntityFromInstanceHandler)
+    }
+
+    private fun initListeners() {
+        removeEntityFromInstanceHandler = {
+            val minestomEntity = it.entity
+            val entity = replay.getEntityById(minestomEntity.entityId)
+            replay.addAction(RecEntityRemove(entity))
+        }
+
+        entitySpawnHandler = {
+            val minestomEntity = it.entity
+            val entity = minestomEntity.toReplay(false)
+            replay.entities[entity.id] = entity
+            replay.addAction(RecEntitySpawn(minestomEntity.position.toReplay(), entity))
+        }
     }
 
     private fun buildTickerTask(): Task {
@@ -81,6 +115,7 @@ class ReplayRecorder(
         replay.duration = replay.currentDuration
         isRecording = false
         tickerTask.cancel()
+        removeListeners()
     }
 }
 

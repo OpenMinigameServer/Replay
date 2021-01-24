@@ -7,11 +7,8 @@ import io.github.openminigameserver.replay.player.ReplaySession
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.Player
 import net.minestom.server.instance.Instance
-import net.minestom.server.utils.Vector
 
 object RecEntityMovePlayer : EntityActionPlayer<RecEntityMove>() {
-    private val emptyVector = Vector()
-
     override fun play(
         action: RecEntityMove,
         entity: Entity,

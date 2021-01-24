@@ -12,7 +12,7 @@ data class RecordableEntity(
     val spawnPosition: RecordablePosition?,
     val entityData: BaseEntityData? = null
 ) {
-    val spawnOnStart: Boolean = spawnPosition != null
+    var spawnOnStart: Boolean = spawnPosition != null
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

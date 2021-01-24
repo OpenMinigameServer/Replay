@@ -1,4 +1,4 @@
-package io.github.openminigameserver.replay.player.helpers
+package io.github.openminigameserver.replay.helpers
 
 import io.github.openminigameserver.replay.extensions.toMinestom
 import io.github.openminigameserver.replay.model.recordable.RecordablePosition

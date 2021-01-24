@@ -60,14 +60,16 @@ internal fun runOnSeparateThread(code: suspend CoroutineScope.() -> Unit) {
 val profileCache: Cache<UUID, PlayerSkin> =
     CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.MINUTES).build()
 
-fun Entity.toReplay(): RecordableEntity {
+fun Entity.toReplay(spawnOnStart: Boolean = true): RecordableEntity {
     var data: BaseEntityData? = null
     if (this is Player) {
         val skin = skin
 
         data = PlayerEntityData(username, skin?.toReplay(), metadataPacket.getMetadataArray())
     }
-    return RecordableEntity(entityId, entityType.namespaceID, position.toReplay(), data)
+    return RecordableEntity(entityId, entityType.namespaceID, position.toReplay(), data).apply { this.spawnOnStart =
+        spawnOnStart
+    }
 }
 
 fun PlayerSkin.toReplay(): PlayerSkinData {

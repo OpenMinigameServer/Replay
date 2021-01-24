@@ -1,4 +1,4 @@
-package io.github.openminigameserver.replay.player.helpers
+package io.github.openminigameserver.replay.helpers
 
 import io.netty.channel.local.LocalAddress
 import net.minestom.server.entity.Player
