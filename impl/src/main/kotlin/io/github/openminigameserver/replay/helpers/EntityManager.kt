@@ -42,7 +42,7 @@ class EntityManager(var session: ReplaySession) {
             var finalPos = entity.spawnPosition
             session.findActionsForEntity<RecEntityMove>(startTime, entity, targetReplayTime)
                 ?.let { finalPos = it.data.position }
-            session.findActions<RecEntitiesPosition>(startTime, targetReplayTime) { it.positions.containsKey(entity) }
+            session.findLastAction<RecEntitiesPosition>(startTime, targetReplayTime) { it.positions.containsKey(entity) }
                 ?.let { finalPos = it.positions[entity]!!.position }
 
 //            println("${entity.type} ${entity.id} $shouldSpawn")

@@ -15,6 +15,7 @@ import net.minestom.server.data.DataImpl
 import net.minestom.server.entity.Entity
 import net.minestom.server.event.entity.EntitySpawnEvent
 import net.minestom.server.event.instance.RemoveEntityFromInstanceEvent
+import net.minestom.server.event.player.PlayerChangeHeldSlotEvent
 import net.minestom.server.instance.Instance
 import net.minestom.server.inventory.EquipmentHandler
 import net.minestom.server.timer.Task
@@ -39,20 +40,27 @@ class ReplayRecorder(
     }
 
 
+    lateinit var playerChangeHeldSlotHandler: (event: PlayerChangeHeldSlotEvent) -> Unit
     lateinit var entitySpawnHandler: (event: EntitySpawnEvent) -> Unit
     lateinit var removeEntityFromInstanceHandler: (event: RemoveEntityFromInstanceEvent) -> Unit
     private fun registerListeners() {
         initListeners()
+        instance.addEventCallback(PlayerChangeHeldSlotEvent::class.java, playerChangeHeldSlotHandler)
         instance.addEventCallback(EntitySpawnEvent::class.java, entitySpawnHandler)
         instance.addEventCallback(RemoveEntityFromInstanceEvent::class.java, removeEntityFromInstanceHandler)
     }
 
     private fun removeListeners() {
+        instance.removeEventCallback(PlayerChangeHeldSlotEvent::class.java, playerChangeHeldSlotHandler)
         instance.removeEventCallback(EntitySpawnEvent::class.java, entitySpawnHandler)
         instance.removeEventCallback(RemoveEntityFromInstanceEvent::class.java, removeEntityFromInstanceHandler)
     }
 
     private fun initListeners() {
+        playerChangeHeldSlotHandler = event@ {
+            notifyEntityEquipmentChange(it.player)
+        }
+
         removeEntityFromInstanceHandler = event@{
             val minestomEntity = it.entity
             val entity = replay.getEntityById(minestomEntity.entityId) ?: return@event
@@ -130,7 +138,6 @@ class ReplayRecorder(
         replay.addAction(
             RecBlockStateUpdate(
                 RecordablePosition(x.toFloat(), y.toFloat(), z.toFloat(), 0f, 0f),
-                oldState,
                 newState
             )
         )

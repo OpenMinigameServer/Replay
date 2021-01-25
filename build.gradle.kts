@@ -37,7 +37,7 @@ allprojects.forEach {
     compileKotlin.kotlinOptions {
         jvmTarget = "11"
         freeCompilerArgs =
-            freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn" + "-Xopt-in=kotlin.time.ExperimentalTime" + "-Xopt-in=kotlin.contracts.ExperimentalContracts"
+            freeCompilerArgs + "-Xjvm-default=enable" + "-Xopt-in=kotlin.RequiresOptIn" + "-Xopt-in=kotlin.time.ExperimentalTime" + "-Xopt-in=kotlin.contracts.ExperimentalContracts"
     }
     val compileTestKotlin: org.jetbrains.kotlin.gradle.tasks.KotlinCompile by it.tasks
     compileTestKotlin.kotlinOptions {

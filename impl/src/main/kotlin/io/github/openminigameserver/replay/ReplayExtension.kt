@@ -24,6 +24,7 @@ class ReplayExtension : Extension() {
     override fun initialize() {
         val classLoader = this.javaClass.classLoader
         if (classLoader is MinestomRootClassLoader) {
+            classLoader.protectedClasses.add("io.github.openminigameserver.replay.AbstractReplaySession")
             classLoader.protectedPackages.add("io.github.openminigameserver.replay.model")
         }
         logger.info("Replay by OpenMinigameServer version ${BuildInfo.version}.")

@@ -1,12 +1,11 @@
 package io.github.openminigameserver.replay.player
 
+import io.github.openminigameserver.replay.AbstractReplaySession
 import io.github.openminigameserver.replay.TickTime
 import io.github.openminigameserver.replay.extensions.replaySession
 import io.github.openminigameserver.replay.helpers.EntityManager
 import io.github.openminigameserver.replay.model.Replay
-import io.github.openminigameserver.replay.model.recordable.EntityRecordableAction
 import io.github.openminigameserver.replay.model.recordable.RecordableAction
-import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.player.statehelper.ReplaySessionPlayerStateHelper
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -18,85 +17,26 @@ import net.minestom.server.instance.Instance
 import net.minestom.server.network.packet.server.play.TeamsPacket
 import net.minestom.server.scoreboard.Team
 import net.minestom.server.utils.time.TimeUnit
-import java.util.*
 import kotlin.time.Duration
 import kotlin.time.seconds
 
 class ReplaySession constructor(
     internal val instance: Instance,
-    val replay: Replay,
+    override val replay: Replay,
     val viewers: MutableList<Player>,
     private val tickTime: TickTime = TickTime(1L, TimeUnit.TICK)
-) {
+) : AbstractReplaySession() {
     var currentSkipDuration = 10.seconds
-    var isInitialized = false
 
-    val hasEnded: Boolean
+    override val hasEnded: Boolean
         get() = time == replay.duration
 
     val playerStateHelper = ReplaySessionPlayerStateHelper(this)
     private val playerTimeStepHelper = ReplaySessionTimeStepHelper(this)
     private val ticker: Runnable = ReplayTicker(this)
-    private val actions = Stack<RecordableAction>()
 
     init {
         resetActions()
-    }
-
-    inline fun <reified T : RecordableAction> findActions(
-        startDuration: Duration = time,
-        targetDuration: Duration = Duration.ZERO,
-        condition: (T) -> Boolean = { true }
-    ): T? {
-        var start = startDuration
-        var end = targetDuration
-        val isReverse = start > end
-
-        if (isReverse) {
-            start = end.also { end = start }
-        }
-
-        return replay.actions.filter { it.timestamp in start..end }
-            .let { action -> if (isReverse) action.sortedByDescending { it.timestamp } else action.sortedBy { it.timestamp } }
-            .lastOrNull { it is T && condition(it) } as? T
-    }
-
-
-    inline fun <reified T : RecordableAction> findManyActionsGeneric(
-        startDuration: Duration = time,
-        targetDuration: Duration = Duration.ZERO,
-        crossinline condition: (T) -> Boolean = { true }
-    ): List<T> {
-        return findManyActions(startDuration, targetDuration) {
-            it is T && condition(it)
-        }.map { it as T }
-    }
-
-    fun findManyActions(
-        startDuration: Duration = time,
-        targetDuration: Duration = Duration.ZERO,
-        condition: (RecordableAction) -> Boolean = { true }
-    ): List<RecordableAction> {
-        var start = startDuration
-        var end = targetDuration
-        val isReverse = start > end
-
-        if (isReverse) {
-            start = end.also { end = start }
-        }
-
-        val actions = replay.actions.filter { it.timestamp in start..end }
-        return actions.filter { condition(it) }
-            .let { action -> if (isReverse) action.sortedByDescending { it.timestamp } else action.sortedBy { it.timestamp } }
-    }
-
-    inline fun <reified T : EntityRecordableAction> findActionsForEntity(
-        startDuration: Duration = time,
-        entity: RecordableEntity,
-        targetDuration: Duration = Duration.ZERO,
-        condition: (T) -> Boolean = { true }
-    ): T? {
-        return findActions(startDuration, targetDuration) { it.entity == entity && condition(it) }
     }
 
     private fun resetActions(targetDuration: Duration = Duration.ZERO) {
@@ -127,7 +67,7 @@ class ReplaySession constructor(
      * Current replay time.
      * Valid regardless of [paused].
      */
-    var time: Duration = Duration.ZERO
+    override var time: Duration = Duration.ZERO
 
     private fun updateReplayStateToViewers() {
         playerStateHelper.updateReplayStateToViewers()
@@ -139,7 +79,7 @@ class ReplaySession constructor(
         .teamColor(ChatColor.GRAY)
         .build()
 
-    fun init() {
+    override fun init() {
         isInitialized = true
         viewers.forEach { p ->
             viewerTeam.addMember(p.username)
@@ -153,7 +93,7 @@ class ReplaySession constructor(
         }.start()
     }
 
-    private fun unInit() {
+    override fun unInit() {
         isInitialized = false
         entityManager.removeAllEntities()
         instance.replaySession = null
@@ -191,7 +131,7 @@ class ReplaySession constructor(
      */
     internal var lastReplayTime = Duration.ZERO /* Used to detect if we're going backwards */
 
-    internal fun tick(forceTick: Boolean = false, isTimeStep: Boolean = false) {
+    override fun tick(forceTick: Boolean, isTimeStep: Boolean) {
         if (!hasSpawnedEntities) {
             replay.entities.values.filter { it.spawnOnStart }.forEach {
                 entityManager.spawnEntity(it, it.spawnPosition!!)
@@ -247,7 +187,7 @@ class ReplaySession constructor(
     }
 
     val entityManager = EntityManager(this)
-    internal fun playAction(action: RecordableAction) {
+    override fun playAction(action: RecordableAction) {
         try {
             ActionPlayerManager.getActionPlayer(action).play(action, this, instance, viewers)
         } catch (e: Throwable) {

@@ -1,7 +1,7 @@
 package io.github.openminigameserver.replay.model.recordable.entity.data
 
 import io.github.openminigameserver.replay.model.recordable.RecordableItemStack
-import io.github.openminigameserver.replay.model.recordable.impl.EntityEquipmentSlot
+import io.github.openminigameserver.replay.model.recordable.entity.EntityEquipmentSlot
 
 data class PlayerEntityData(val userName: String, val skin: PlayerSkinData?, val metadata: ByteArray,
                             override val equipment: Map<EntityEquipmentSlot, RecordableItemStack>

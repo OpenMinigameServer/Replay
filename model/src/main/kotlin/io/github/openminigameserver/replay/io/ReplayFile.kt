@@ -1,5 +1,6 @@
 package io.github.openminigameserver.replay.io
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.dataformat.smile.databind.SmileMapper
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
@@ -15,6 +16,7 @@ class ReplayFile(private val file: File, var replay: Replay? = null, private val
 
     companion object {
         private val mapper = SmileMapper().apply {
+            configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false)
             registerKotlinModule()
             registerModule(ReplayModule())
             registerModule(Jdk8Module())

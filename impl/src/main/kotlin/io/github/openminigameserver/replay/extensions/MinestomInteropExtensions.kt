@@ -6,11 +6,11 @@ import io.github.openminigameserver.replay.model.Replay
 import io.github.openminigameserver.replay.model.recordable.RecordableItemStack
 import io.github.openminigameserver.replay.model.recordable.RecordablePosition
 import io.github.openminigameserver.replay.model.recordable.RecordableVector
+import io.github.openminigameserver.replay.model.recordable.entity.EntityEquipmentSlot
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.model.recordable.entity.data.BaseEntityData
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerSkinData
-import io.github.openminigameserver.replay.model.recordable.impl.EntityEquipmentSlot
 import io.github.openminigameserver.replay.player.ReplaySession
 import io.github.openminigameserver.replay.recorder.ReplayRecorder
 import kotlinx.coroutines.CoroutineScope
