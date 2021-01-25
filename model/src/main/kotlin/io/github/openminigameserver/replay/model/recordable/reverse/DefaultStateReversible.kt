@@ -17,9 +17,8 @@ interface DefaultStateReversible : Reversible {
             Duration.ZERO,
             end.let { if (!forwardStep) it - 1.milliseconds else it }
         ) {
-            it is DefaultStateReversible && this.isMatch(it) }
-            .takeIf { it.isNotEmpty() } ?: listOf(provideDefaultState())
-
+            it is DefaultStateReversible && isMatch(it)
+        }.takeIf { it.isNotEmpty() } ?: listOf(provideDefaultState())
     }
 
     fun provideDefaultState(): RecordableAction

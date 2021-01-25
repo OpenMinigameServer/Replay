@@ -16,6 +16,7 @@ object ActionPlayerManager {
         registerActionPlayer(RecEntityRemovePlayer)
         registerActionPlayer(RecBlockStateUpdatePlayer)
         registerActionPlayer(RecEntityEquipmentUpdatePlayer)
+        registerActionPlayer(RecBlockStateBatchUpdatePlayer)
     }
 
     private inline fun <reified R : RecordableAction, T : ActionPlayer<R>> registerActionPlayer(rePlayer: T) {

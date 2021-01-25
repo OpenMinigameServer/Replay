@@ -26,7 +26,12 @@ class ReplaySession constructor(
     val viewers: MutableList<Player>,
     private val tickTime: TickTime = TickTime(1L, TimeUnit.TICK)
 ) : AbstractReplaySession() {
-    var currentSkipDuration = 10.seconds
+
+    var currentStepDuration = 10.seconds
+    set(value) {
+        field = value
+        updateReplayStateToViewers()
+    }
 
     override val hasEnded: Boolean
         get() = time == replay.duration

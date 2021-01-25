@@ -3,7 +3,6 @@ package io.github.openminigameserver.replay
 import io.github.openminigameserver.replay.extensions.*
 import io.github.openminigameserver.replay.helpers.ReplayPlayerEntity
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntityMetadata
-import io.github.openminigameserver.replay.model.recordable.impl.RecPlayerHandAnimation
 import io.github.openminigameserver.replay.player.statehelper.ControlItemAction
 import io.github.openminigameserver.replay.player.statehelper.constants.controlItemAction
 import io.github.openminigameserver.replay.recorder.ReplayRecorder
@@ -50,9 +49,9 @@ object ReplayListener {
     }
 
     private val handAnimationHandler: (event: PlayerHandAnimationEvent) -> Unit = eventCallback@{ event: PlayerHandAnimationEvent ->
-        val replay = event.player.instance?.recorder?.replay ?: return@eventCallback
+        val session = event.player.instance?.replaySession ?: return@eventCallback
 
-        replay.getEntity(event.player)?.let { replay.addAction(RecPlayerHandAnimation(enumValueOf(event.hand.name), it)) }
+        session.playerStateHelper.handleItemSwing(event.player, event.player.getItemInHand(event.hand))
     }
 
     fun registerListeners() {

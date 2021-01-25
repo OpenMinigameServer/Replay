@@ -2,6 +2,7 @@ val minestomVersion = "b37670e1c7"
 
 dependencies {
     implementation(project(":model"))
+    implementation("com.github.OpenMinigameServer:cloud-minestom:58e8fd76f3")
     compileOnly(minestom(minestomVersion))
     testImplementation(minestom(minestomVersion))
 }

@@ -13,17 +13,29 @@ class ReplaySessionTimeStepHelper(private val session: ReplaySession) {
         val (start, end) = currentTime to targetReplayTime
 
 
-        val reversibleActions =
+        val reversibleActions: List<RecordableAction> =
             session.findManyActions(start, end) { it is Reversible }.groupBy { it.javaClass }
                 .flatMap { it.value }.map { it as Reversible }
-                .flatMap { entry -> if (!isForwardStep) entry.provideRevertedActions(start, end, session) else listOf(entry as RecordableAction) }
+                .flatMap { entry ->
+                    if (!isForwardStep) entry.provideRevertedActions(start, end, session) else listOf(
+                        entry as RecordableAction
+                    )
+                }
 
         val actionsToPlay = mutableListOf<RecordableAction>()
         actionsToPlay.addAll(reversibleActions.toMutableList())
 
         if (isForwardStep) actionsToPlay.sortBy { it.timestamp } else actionsToPlay.sortByDescending { it.timestamp }
+
+        actionsToPlay.filter { it is Reversible && it.isAppliedInBatch }.groupBy { it.javaClass }
+            .forEach { groupedEntry ->
+                val first = groupedEntry.value.firstOrNull() as? Reversible ?: return@forEach
+                actionsToPlay.removeAll(groupedEntry.value)
+                first.batchActions(groupedEntry.value.let { if (isForwardStep) it.sortedBy { it.timestamp } else it.sortedByDescending { it.timestamp } })
+                    ?.let { it1 -> actionsToPlay.add(it1) }
+            }
+
         actionsToPlay.forEach {
-//            println("Playing ${it.javaClass.simpleName}")
             session.playAction(it)
         }
 

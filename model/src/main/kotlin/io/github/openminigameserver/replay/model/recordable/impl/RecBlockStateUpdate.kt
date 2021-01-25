@@ -6,6 +6,13 @@ import io.github.openminigameserver.replay.model.recordable.reverse.DefaultState
 
 data class RecBlockStateUpdate(val position: RecordablePosition, val newState: Short) :
     RecordableAction(), DefaultStateReversible {
+    override val isAppliedInBatch: Boolean
+        get() = true
+
+    override fun batchActions(value: List<RecordableAction>): RecordableAction {
+        return RecBlockStateBatchUpdate(value.mapNotNull { it as? RecBlockStateUpdate })
+    }
+
     override fun provideDefaultState(): RecordableAction {
         return RecBlockStateUpdate(position, 0)
     }

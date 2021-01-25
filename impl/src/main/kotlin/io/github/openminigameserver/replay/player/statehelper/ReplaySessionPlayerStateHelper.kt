@@ -9,12 +9,15 @@ import net.minestom.server.chat.ChatColor
 import net.minestom.server.chat.ColoredText
 import net.minestom.server.entity.GameMode
 import net.minestom.server.entity.Player
+import net.minestom.server.item.ItemStack
 import net.minestom.server.sound.Sound
 import net.minestom.server.sound.SoundCategory
 import net.minestom.server.timer.Task
 import net.minestom.server.utils.time.TimeUnit
 import java.util.*
+import kotlin.math.roundToInt
 import kotlin.time.Duration
+import kotlin.time.seconds
 
 class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
 
@@ -111,14 +114,29 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
     }
 
     private fun updateItems(it: Player) {
-        it.inventory.setItemStack(SLOT_DECREASE_SPEED, PlayerHeadsItems.getDecreaseSpeedItem())
-        it.inventory.setItemStack(SLOT_STEP_BACKWARDS, PlayerHeadsItems.getStepBackwardsItem(session.currentSkipDuration))
+        it.inventory.setItemStack(
+            SLOT_DECREASE_SPEED,
+            getItemStackOrAirIfReplayEnded(PlayerHeadsItems.getDecreaseSpeedItem())
+        )
+        it.inventory.setItemStack(
+            SLOT_STEP_BACKWARDS,
+            getItemStackOrAirIfReplayEnded(PlayerHeadsItems.getStepBackwardsItem(session.currentStepDuration))
+        )
 
         it.inventory.setItemStack(SLOT_PLAY_PAUSE, PlayerHeadsItems.getPlayPauseItem(session.paused, session.hasEnded))
 
-        it.inventory.setItemStack(SLOT_STEP_FORWARD, PlayerHeadsItems.getStepForwardItem(session.currentSkipDuration))
-        it.inventory.setItemStack(SLOT_INCREASE_SPEED, PlayerHeadsItems.getIncreaseSpeedItem())
+        it.inventory.setItemStack(
+            SLOT_STEP_FORWARD,
+            getItemStackOrAirIfReplayEnded(PlayerHeadsItems.getStepForwardItem(session.currentStepDuration))
+        )
+        it.inventory.setItemStack(
+            SLOT_INCREASE_SPEED,
+            getItemStackOrAirIfReplayEnded(PlayerHeadsItems.getIncreaseSpeedItem())
+        )
     }
+
+    private fun getItemStackOrAirIfReplayEnded(itemStack: ItemStack) =
+        if (session.hasEnded) ItemStack.getAirItem() else itemStack
 
     val skipSpeeds = arrayOf(1, 5, 10, 30, 60)
     private val speeds = arrayOf(0.25, 0.5, 1.0, 2.0, 4.0)
@@ -128,29 +146,25 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
             ControlItemAction.COOL_DOWN -> {
                 val previousSpeed = speeds[(speeds.indexOf(session.speed) - 1).coerceAtLeast(0)]
                 session.speed = previousSpeed
-                sendSubtitleToHost("-")
                 session.tick(true)
             }
             ControlItemAction.PAUSE -> {
                 session.paused = true
-                sendSubtitleToHost("⏸")
             }
-            ControlItemAction.RESUME, ControlItemAction.PLAY_AGAIN -> {
-                val hasEnded = session.hasEnded
-                if (hasEnded) {
-                    session.time = Duration.ZERO
-                }
+            ControlItemAction.RESUME -> {
                 session.paused = false
-                if (hasEnded)
-                    session.tick(forceTick = action == ControlItemAction.PLAY_AGAIN, isTimeStep = true)
+            }
+            ControlItemAction.PLAY_AGAIN -> {
+                session.lastReplayTime = session.replay.duration
+                session.time = Duration.ZERO
 
-                sendSubtitleToHost("⏵")
+                session.tick(forceTick = action == ControlItemAction.PLAY_AGAIN, isTimeStep = true)
+                session.paused = false
             }
             ControlItemAction.SPEED_UP -> {
                 val nextSpeed = speeds[(speeds.indexOf(session.speed) + 1).coerceAtMost(speeds.size - 1)]
                 session.speed = nextSpeed
                 session.tick(true)
-                sendSubtitleToHost("+")
             }
             ControlItemAction.STEP_BACKWARDS -> {
                 doStep(false)
@@ -167,18 +181,19 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
     }
 
     private fun doStep(isForward: Boolean) {
-        val duration = session.currentSkipDuration * if (isForward) 1 else -1
+        val oldPausedState = session.paused
+        val duration = session.currentStepDuration * if (isForward) 1 else -1
+        session.paused = true
+
         session.lastReplayTime = session.time
         session.time =
             (session.time + duration).coerceIn(Duration.ZERO, session.replay.duration)
-        sendSubtitleToHost(if (isForward) "⏩" else "⏪")
         session.tick(forceTick = true, isTimeStep = true)
+
+        session.paused = oldPausedState
         updateReplayStateToViewers()
     }
 
-    private fun sendSubtitleToHost(message: String) {
-//        host?.sendTitleSubtitleMessage(ColoredText.of(""), ColoredText.of(ChatColor.RED, message))
-    }
 
     private fun teleportViewers() {
         val entities = session.replay.entities.values
@@ -202,6 +217,21 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
     fun updateReplayStateToViewers() {
         updateViewersActionBar(session.viewers)
         updateAllItems()
+    }
+
+    fun handleItemSwing(player: Player, itemStack: ItemStack) {
+        val action = itemStack.controlItemAction.takeUnless { it == ControlItemAction.NONE }
+        if (action == ControlItemAction.STEP_BACKWARDS || action == ControlItemAction.STEP_FORWARD) {
+            val duration = session.currentStepDuration.inSeconds.roundToInt()
+            val currentSkipIndex = skipSpeeds.indexOf(duration).coerceAtLeast(0)
+            var nextIndex = currentSkipIndex + 1
+            if (nextIndex >= skipSpeeds.size) {
+                nextIndex = 0
+            }
+
+            session.currentStepDuration = skipSpeeds[nextIndex].seconds
+
+        }
     }
 
 }

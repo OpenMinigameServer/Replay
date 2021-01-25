@@ -4,6 +4,7 @@ import io.github.openminigameserver.replay.ReplayManager
 import io.github.openminigameserver.replay.TickTime
 import io.github.openminigameserver.replay.extensions.getEntity
 import io.github.openminigameserver.replay.extensions.getEquipmentForEntity
+import io.github.openminigameserver.replay.extensions.recorder
 import io.github.openminigameserver.replay.extensions.toReplay
 import io.github.openminigameserver.replay.model.recordable.RecordablePosition
 import io.github.openminigameserver.replay.model.recordable.RecordablePositionAndVector
@@ -16,6 +17,7 @@ import net.minestom.server.entity.Entity
 import net.minestom.server.event.entity.EntitySpawnEvent
 import net.minestom.server.event.instance.RemoveEntityFromInstanceEvent
 import net.minestom.server.event.player.PlayerChangeHeldSlotEvent
+import net.minestom.server.event.player.PlayerHandAnimationEvent
 import net.minestom.server.instance.Instance
 import net.minestom.server.inventory.EquipmentHandler
 import net.minestom.server.timer.Task
@@ -40,39 +42,48 @@ class ReplayRecorder(
     }
 
 
+
+    lateinit var handAnimationHandler: (event: PlayerHandAnimationEvent) -> Unit
     lateinit var playerChangeHeldSlotHandler: (event: PlayerChangeHeldSlotEvent) -> Unit
     lateinit var entitySpawnHandler: (event: EntitySpawnEvent) -> Unit
     lateinit var removeEntityFromInstanceHandler: (event: RemoveEntityFromInstanceEvent) -> Unit
+    private fun initListeners() {
+        handAnimationHandler =  eventCallback@{ event: PlayerHandAnimationEvent ->
+            val replay = event.player.instance?.takeIf { it.uniqueId == instance.uniqueId }?.recorder?.replay ?: return@eventCallback
+
+            replay.getEntity(event.player)?.let { replay.addAction(RecPlayerHandAnimation(enumValueOf(event.hand.name), it)) }
+        }
+        playerChangeHeldSlotHandler = event@ {
+            notifyEntityEquipmentChange(it.player)
+        }
+
+        removeEntityFromInstanceHandler = event@{
+            val minestomEntity = it.entity.takeIf { e -> e.instance?.uniqueId == instance.uniqueId } ?: return@event
+            val entity = replay.getEntityById(minestomEntity.entityId) ?: return@event
+            replay.addAction(RecEntityRemove(minestomEntity.position.toReplay(), entity))
+        }
+
+        entitySpawnHandler = event@{
+            val minestomEntity = it.entity.takeIf { e -> e.instance?.uniqueId == instance.uniqueId } ?: return@event
+            val entity = minestomEntity.toReplay(false)
+            replay.entities[entity.id] = entity
+            replay.addAction(RecEntitySpawn(minestomEntity.position.toReplay(), entity))
+        }
+    }
+
     private fun registerListeners() {
         initListeners()
+        instance.addEventCallback(PlayerHandAnimationEvent::class.java, handAnimationHandler)
         instance.addEventCallback(PlayerChangeHeldSlotEvent::class.java, playerChangeHeldSlotHandler)
         instance.addEventCallback(EntitySpawnEvent::class.java, entitySpawnHandler)
         instance.addEventCallback(RemoveEntityFromInstanceEvent::class.java, removeEntityFromInstanceHandler)
     }
 
     private fun removeListeners() {
+        instance.removeEventCallback(PlayerHandAnimationEvent::class.java, handAnimationHandler)
         instance.removeEventCallback(PlayerChangeHeldSlotEvent::class.java, playerChangeHeldSlotHandler)
         instance.removeEventCallback(EntitySpawnEvent::class.java, entitySpawnHandler)
         instance.removeEventCallback(RemoveEntityFromInstanceEvent::class.java, removeEntityFromInstanceHandler)
-    }
-
-    private fun initListeners() {
-        playerChangeHeldSlotHandler = event@ {
-            notifyEntityEquipmentChange(it.player)
-        }
-
-        removeEntityFromInstanceHandler = event@{
-            val minestomEntity = it.entity
-            val entity = replay.getEntityById(minestomEntity.entityId) ?: return@event
-            replay.addAction(RecEntityRemove(minestomEntity.position.toReplay(), entity))
-        }
-
-        entitySpawnHandler = {
-            val minestomEntity = it.entity
-            val entity = minestomEntity.toReplay(false)
-            replay.entities[entity.id] = entity
-            replay.addAction(RecEntitySpawn(minestomEntity.position.toReplay(), entity))
-        }
     }
 
     private fun buildTickerTask(): Task {

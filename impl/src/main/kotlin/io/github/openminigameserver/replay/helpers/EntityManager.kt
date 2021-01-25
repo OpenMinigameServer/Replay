@@ -45,7 +45,6 @@ class EntityManager(var session: ReplaySession) {
             session.findLastAction<RecEntitiesPosition>(startTime, targetReplayTime) { it.positions.containsKey(entity) }
                 ?.let { finalPos = it.positions[entity]!!.position }
 
-//            println("${entity.type} ${entity.id} $shouldSpawn")
             it.velocity = Vector(0F, 0F, 0F)
             finalPos?.let { previousLoc ->
                 if (shouldSpawn) {
