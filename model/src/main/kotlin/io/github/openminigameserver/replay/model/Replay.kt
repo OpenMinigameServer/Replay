@@ -16,6 +16,15 @@ data class Replay(
     val entities: MutableMap<Int, RecordableEntity> = mutableMapOf(),
     val actions: ConcurrentLinkedDeque<RecordableAction> = ConcurrentLinkedDeque<RecordableAction>()
 ) {
+    private val metadata: MutableMap<String, Any> = mutableMapOf()
+
+    operator fun <T : Any> get(name: String): T? {
+        return metadata[name] as? T
+    }
+    operator fun <T : Any> set(name: String, value: T) {
+        metadata[name] = value
+    }
+
     var duration: Duration = Duration.ZERO
 
     @get:JsonIgnore

@@ -111,9 +111,7 @@ class ReplaySession constructor(
             entityManager.removeEntityViewer(player)
             playerStateHelper.removeViewer(player)
 
-            if (viewerTeam.members.contains(player.username)) {
-                viewerTeam.removeMember(player.username)
-            }
+            viewerTeam.removeMember(player.username)
 
             player.sendActionBarMessage(ColoredText.of(""))
         } catch (e: Throwable) {
