@@ -5,8 +5,6 @@ import io.github.openminigameserver.replay.model.recordable.RecordablePosition
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntitiesPosition
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntityMove
-import io.github.openminigameserver.replay.model.recordable.impl.RecEntityRemove
-import io.github.openminigameserver.replay.model.recordable.impl.RecEntitySpawn
 import io.github.openminigameserver.replay.player.ReplaySession
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.Player
@@ -16,6 +14,9 @@ import net.minestom.server.utils.Vector
 import kotlin.time.Duration
 
 class EntityManager(var session: ReplaySession) {
+    val entities: Collection<RecordableEntity>
+        get() = replayEntities.keys.mapNotNull { session.replay.getEntityById(it) }
+
     //Replay entity id
     private val replayEntities = mutableMapOf<Int, Entity>()
 
@@ -24,7 +25,7 @@ class EntityManager(var session: ReplaySession) {
             it.remove()
             it.askSynchronization()
 
-            val spawnAction = session.findActionsForEntity<RecEntitySpawn>(
+          /*  val spawnAction = session.findActionsForEntity<RecEntitySpawn>(
                 entity = entity,
                 startDuration = startTime,
                 targetDuration = targetReplayTime
@@ -33,9 +34,9 @@ class EntityManager(var session: ReplaySession) {
                 entity = entity,
                 startDuration = startTime,
                 targetDuration = targetReplayTime
-            )
+            )*/
             //Check if Entity (has been spawned at start) or (has been spawned somewhere before and has not been removed before)
-            val shouldSpawn = entity.spawnOnStart || (spawnAction != null && removeAction == null)
+            val shouldSpawn = true
 
             //Find actual position
             var finalPos = entity.spawnPosition
@@ -84,6 +85,15 @@ class EntityManager(var session: ReplaySession) {
 
     fun getNativeEntity(entity: RecordableEntity): Entity? {
         return replayEntities[entity.id]
+    }
+
+    fun removeEntity(entity: RecordableEntity) {
+        getNativeEntity(entity)?.remove()
+        replayEntities.remove(entity.id)
+    }
+    fun removeNativeEntity(entity: Entity) {
+        entity.remove()
+        replayEntities.remove(entity.entityId)
     }
 
     fun removeAllEntities() {

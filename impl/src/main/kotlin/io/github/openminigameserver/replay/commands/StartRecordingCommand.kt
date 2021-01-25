@@ -1,7 +1,6 @@
 package io.github.openminigameserver.replay.commands
 
 import io.github.openminigameserver.replay.extensions.recorder
-import io.github.openminigameserver.replay.recorder.PositionRecordType
 import io.github.openminigameserver.replay.recorder.RecorderOptions
 import io.github.openminigameserver.replay.recorder.ReplayRecorder
 import net.minestom.server.chat.ChatClickEvent
@@ -24,7 +23,7 @@ object StartRecordingCommand : Command("startrecording") {
             )
             val recorder = ReplayRecorder(
                 sender.instance!!,
-                RecorderOptions(PositionRecordType.SEPARATE_ALL, true)
+                RecorderOptions()
             )
             sender.recorder = recorder
 

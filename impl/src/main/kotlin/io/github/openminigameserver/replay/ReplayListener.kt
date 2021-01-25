@@ -6,13 +6,16 @@ import io.github.openminigameserver.replay.model.recordable.impl.RecEntityMetada
 import io.github.openminigameserver.replay.model.recordable.impl.RecPlayerHandAnimation
 import io.github.openminigameserver.replay.player.statehelper.ControlItemAction
 import io.github.openminigameserver.replay.player.statehelper.constants.controlItemAction
+import io.github.openminigameserver.replay.recorder.ReplayRecorder
 import net.minestom.server.MinecraftServer
+import net.minestom.server.entity.Entity
 import net.minestom.server.entity.fakeplayer.FakePlayer
 import net.minestom.server.event.inventory.InventoryPreClickEvent
 import net.minestom.server.event.player.PlayerDisconnectEvent
 import net.minestom.server.event.player.PlayerHandAnimationEvent
 import net.minestom.server.event.player.PlayerSwapItemEvent
 import net.minestom.server.event.player.PlayerUseItemEvent
+import net.minestom.server.network.packet.server.play.EntityEquipmentPacket
 import net.minestom.server.network.packet.server.play.EntityMetaDataPacket
 
 object ReplayListener {
@@ -46,10 +49,10 @@ object ReplayListener {
             it.isCancelled = true
     }
 
-    private val handAnimationHandler: (event: PlayerHandAnimationEvent) -> Unit = eventCallback@{
-        val replay = it.player.instance?.recorder?.replay ?: return@eventCallback
+    private val handAnimationHandler: (event: PlayerHandAnimationEvent) -> Unit = eventCallback@{ event: PlayerHandAnimationEvent ->
+        val replay = event.player.instance?.recorder?.replay ?: return@eventCallback
 
-        replay.addAction(RecPlayerHandAnimation(enumValueOf(it.hand.name), replay.getEntity(it.player)))
+        replay.getEntity(event.player)?.let { replay.addAction(RecPlayerHandAnimation(enumValueOf(event.hand.name), it)) }
     }
 
     fun registerListeners() {
@@ -69,14 +72,24 @@ object ReplayListener {
     private fun registerPacketListener() {
         MinecraftServer.getConnectionManager().onPacketSend { players, packetController, packet ->
             if (packet is EntityMetaDataPacket) {
-                val player = players.firstOrNull { it.entityId == packet.entityId } ?: return@onPacketSend
-                val replay = player.instance?.recorder?.replay ?: return@onPacketSend
+                players.filter { it.instance != null }.groupBy { it.instance?.uniqueId }.forEach {
+                    val player = it.value.first()
+                    val replay = player.instance?.recorder?.replay ?: return@onPacketSend
 
-                val metadataArray = packet.getMetadataArray()
+                    val metadataArray = packet.getMetadataArray()
 
-                replay.addAction(RecEntityMetadata(metadataArray, replay.getEntityById(packet.entityId)))
+                    replay.getEntityById(packet.entityId)?.let {
+                        replay.addAction(RecEntityMetadata(metadataArray, it))
+                    }
+                }
+            } else if (packet is EntityEquipmentPacket) {
+                val entity = Entity.getEntity(packet.entityId) ?: return@onPacketSend
+                val instance = entity.instance ?: return@onPacketSend
+
+                val recorder: ReplayRecorder = instance.recorder ?: return@onPacketSend
+
+                recorder.notifyEntityEquipmentChange(entity)
             }
         }
     }
-
 }

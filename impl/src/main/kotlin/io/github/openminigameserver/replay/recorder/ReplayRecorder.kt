@@ -2,19 +2,21 @@ package io.github.openminigameserver.replay.recorder
 
 import io.github.openminigameserver.replay.ReplayManager
 import io.github.openminigameserver.replay.TickTime
+import io.github.openminigameserver.replay.extensions.getEntity
+import io.github.openminigameserver.replay.extensions.getEquipmentForEntity
 import io.github.openminigameserver.replay.extensions.toReplay
+import io.github.openminigameserver.replay.model.recordable.RecordablePosition
 import io.github.openminigameserver.replay.model.recordable.RecordablePositionAndVector
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
-import io.github.openminigameserver.replay.model.recordable.impl.RecEntitiesPosition
-import io.github.openminigameserver.replay.model.recordable.impl.RecEntityMove
-import io.github.openminigameserver.replay.model.recordable.impl.RecEntityRemove
-import io.github.openminigameserver.replay.model.recordable.impl.RecEntitySpawn
+import io.github.openminigameserver.replay.model.recordable.impl.*
 import io.github.openminigameserver.replay.recorder.PositionRecordType.*
 import net.minestom.server.MinecraftServer
 import net.minestom.server.data.DataImpl
+import net.minestom.server.entity.Entity
 import net.minestom.server.event.entity.EntitySpawnEvent
 import net.minestom.server.event.instance.RemoveEntityFromInstanceEvent
 import net.minestom.server.instance.Instance
+import net.minestom.server.inventory.EquipmentHandler
 import net.minestom.server.timer.Task
 import net.minestom.server.utils.time.TimeUnit
 import java.util.*
@@ -51,9 +53,9 @@ class ReplayRecorder(
     }
 
     private fun initListeners() {
-        removeEntityFromInstanceHandler = {
+        removeEntityFromInstanceHandler = event@{
             val minestomEntity = it.entity
-            val entity = replay.getEntityById(minestomEntity.entityId)
+            val entity = replay.getEntityById(minestomEntity.entityId) ?: return@event
             replay.addAction(RecEntityRemove(minestomEntity.position.toReplay(), entity))
         }
 
@@ -85,7 +87,7 @@ class ReplayRecorder(
             val currentNewPosition =
                 RecordablePositionAndVector(currentPosition.toReplay(), entity.velocity.toReplay())
             if (oldPosition == null || oldPosition != currentNewPosition || options.recordAllChanges) {
-                val replayEntity = replay.getEntityById(entity.entityId)
+                val replayEntity = replay.getEntityById(entity.entityId) ?: return@forEach
                 recordedPositions[replayEntity] = currentNewPosition
                 entityPositions[entity.uuid] = currentNewPosition
             }
@@ -117,5 +119,30 @@ class ReplayRecorder(
         tickerTask.cancel()
         removeListeners()
     }
+
+    fun notifyBlockChange(
+        x: Int,
+        y: Int,
+        z: Int,
+        oldState: Short,
+        newState: Short
+    ) {
+        replay.addAction(
+            RecBlockStateUpdate(
+                RecordablePosition(x.toFloat(), y.toFloat(), z.toFloat(), 0f, 0f),
+                oldState,
+                newState
+            )
+        )
+    }
+
+    fun notifyEntityEquipmentChange(entity: Entity) {
+        if (entity !is EquipmentHandler) return
+        val replayEntity = replay.getEntity(entity) ?: return
+
+        replay.addAction(RecEntityEquipmentUpdate(replayEntity, entity.getEquipmentForEntity()))
+    }
+
 }
+
 

@@ -3,10 +3,11 @@ package io.github.openminigameserver.replay.player.statehelper
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
 import io.github.openminigameserver.replay.player.ReplaySession
 import io.github.openminigameserver.replay.player.statehelper.constants.*
-import io.github.openminigameserver.replay.player.statehelper.utils.PlayerData
+import io.github.openminigameserver.replay.player.statehelper.utils.ReplayStatePlayerData
 import net.minestom.server.MinecraftServer
 import net.minestom.server.chat.ChatColor
 import net.minestom.server.chat.ColoredText
+import net.minestom.server.entity.GameMode
 import net.minestom.server.entity.Player
 import net.minestom.server.sound.Sound
 import net.minestom.server.sound.SoundCategory
@@ -88,15 +89,18 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
         viewers.forEach { it.playSound(Sound.ENTITY_PLAYER_LEVELUP, SoundCategory.PLAYERS, 1f, 1f) }
     }
 
-    private val oldData = mutableMapOf<UUID, PlayerData>()
+    private val oldData = mutableMapOf<UUID, ReplayStatePlayerData>()
     fun removeViewer(player: Player) {
         oldData[player.uuid]?.apply(player)
     }
 
     private fun initializePlayerControlItems() {
         session.viewers.forEach { p: Player ->
-            oldData[p.uuid] = PlayerData(p)
+            oldData[p.uuid] = ReplayStatePlayerData(p)
             p.inventory.clear()
+            p.gameMode = GameMode.ADVENTURE
+            p.isAllowFlying = true
+            p.isFlying = true
         }
 
         host?.let {
@@ -164,6 +168,7 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
 
     private fun doStep(isForward: Boolean) {
         val duration = session.currentSkipDuration * if (isForward) 1 else -1
+        session.lastReplayTime = session.time
         session.time =
             (session.time + duration).coerceIn(Duration.ZERO, session.replay.duration)
         sendSubtitleToHost(if (isForward) "⏩" else "⏪")
@@ -172,7 +177,7 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
     }
 
     private fun sendSubtitleToHost(message: String) {
-        host?.sendTitleSubtitleMessage(ColoredText.of(""), ColoredText.of(ChatColor.RED, message))
+//        host?.sendTitleSubtitleMessage(ColoredText.of(""), ColoredText.of(ChatColor.RED, message))
     }
 
     private fun teleportViewers() {

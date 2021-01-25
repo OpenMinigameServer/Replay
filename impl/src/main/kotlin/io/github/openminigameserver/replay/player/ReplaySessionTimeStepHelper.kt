@@ -10,11 +10,7 @@ class ReplaySessionTimeStepHelper(private val session: ReplaySession) {
     fun performTimeStep(currentTime: Duration, targetReplayTime: Duration) {
         val isForwardStep = targetReplayTime > currentTime
 
-        var (start, end) = currentTime to targetReplayTime
-        if (start > end) {
-            start = targetReplayTime
-            end = currentTime
-        }
+        val (start, end) = currentTime to targetReplayTime
 
         val reversibleActions =
             session.findManyActions(start, end) { it.isReversible }.groupBy { it.javaClass }
@@ -25,14 +21,13 @@ class ReplaySessionTimeStepHelper(private val session: ReplaySession) {
         actionsToPlay.addAll(reversibleActions.toMutableList())
 
         actionsToPlay.forEach {
-//            println(it.javaClass.simpleName)
+            println("Playing ${it.javaClass.simpleName}")
             session.playAction(it)
         }
 
-        replay.entities.forEach {
-            entityManager.resetEntity(it.value, start, end)
+        entityManager.entities.forEach {
+            entityManager.resetEntity(it, start, end)
         }
 
-//        replay.entities.values.forEach { entityManager.resetEntity(it, targetReplayTime) }
     }
 }

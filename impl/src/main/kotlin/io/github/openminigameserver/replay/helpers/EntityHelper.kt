@@ -1,10 +1,11 @@
 package io.github.openminigameserver.replay.helpers
 
+import io.github.openminigameserver.replay.extensions.setEquipmentForEntity
 import io.github.openminigameserver.replay.extensions.toMinestom
 import io.github.openminigameserver.replay.model.recordable.entity.data.BaseEntityData
+import io.github.openminigameserver.replay.model.recordable.entity.data.EquipmentEntityData
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
 import net.minestom.server.entity.*
-import net.minestom.server.entity.hologram.Hologram
 import net.minestom.server.entity.type.ambient.EntityBat
 import net.minestom.server.entity.type.animal.*
 import net.minestom.server.entity.type.decoration.EntityArmorStand
@@ -17,6 +18,7 @@ import net.minestom.server.entity.type.other.EntitySnowman
 import net.minestom.server.entity.type.projectile.EntityEyeOfEnder
 import net.minestom.server.entity.type.projectile.EntityPotion
 import net.minestom.server.entity.type.vehicle.EntityBoat
+import net.minestom.server.inventory.EquipmentHandler
 import net.minestom.server.utils.Position
 import org.apache.commons.lang3.reflect.ConstructorUtils
 import java.util.*
@@ -64,7 +66,7 @@ internal object EntityHelper {
         entityTypeMap[EntityType.PIG] = EntityPig::class.java
         entityTypeMap[EntityType.LLAMA] = EntityLlama::class.java
         entityTypeMap[EntityType.CREEPER] = EntityCreeper::class.java
-        entityTypeMap[EntityType.ARMOR_STAND] = Hologram.HologramEntity::class.java
+        entityTypeMap[EntityType.ARMOR_STAND] = EntityArmorStand::class.java
         entityTypeMap[EntityType.SLIME] = EntitySlime::class.java
         entityTypeMap[EntityType.MOOSHROOM] = EntityMooshroom::class.java
     }
@@ -94,6 +96,10 @@ internal object EntityHelper {
             it.setNoGravity(true)
             if (it is LivingEntity) {
                 it.health = it.maxHealth
+            }
+
+            if (it is EquipmentHandler && entityData is EquipmentEntityData) {
+                it.setEquipmentForEntity(entityData.equipment)
             }
         }
 

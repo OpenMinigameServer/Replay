@@ -35,7 +35,7 @@ fun main(args: Array<String>) {
             }
         }
     }
-    MinecraftServer.getGlobalEventHandler().addEventCallback(PlayerLoginEvent::class.java, PlayerInit)
+    MinecraftServer.getGlobalEventHandler().addEventCallback(PlayerLoginEvent::class.java, PlayerInit())
 
 
     MinecraftServer.getCommandManager().register(EntityCommand)

@@ -6,6 +6,7 @@ import io.github.openminigameserver.replay.model.recordable.entity.RecordableEnt
 import kotlinx.datetime.Clock.System.now
 import kotlinx.datetime.Instant
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedDeque
 import kotlin.time.Duration
 
 data class Replay(
@@ -13,7 +14,7 @@ data class Replay(
     val id: UUID = UUID.randomUUID(),
     val recordStartTime: Instant = now(),
     val entities: MutableMap<Int, RecordableEntity> = mutableMapOf(),
-    val actions: MutableList<RecordableAction> = mutableListOf()
+    val actions: ConcurrentLinkedDeque<RecordableAction> = ConcurrentLinkedDeque<RecordableAction>()
 ) {
     var duration: Duration = Duration.ZERO
 
@@ -28,8 +29,8 @@ data class Replay(
         actions.add(action)
     }
 
-    fun getEntityById(id: Int): RecordableEntity {
-        return entities[id] ?: throw Exception("Unable to find entity with id $id")
+    fun getEntityById(id: Int): RecordableEntity? {
+        return entities[id]
     }
 
 }

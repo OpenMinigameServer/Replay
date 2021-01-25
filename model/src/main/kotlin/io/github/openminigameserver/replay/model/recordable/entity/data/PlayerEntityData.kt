@@ -1,7 +1,12 @@
 package io.github.openminigameserver.replay.model.recordable.entity.data
 
-data class PlayerEntityData(val userName: String, val skin: PlayerSkinData?, val metadata: ByteArray) :
-    BaseEntityData() {
+import io.github.openminigameserver.replay.model.recordable.RecordableItemStack
+import io.github.openminigameserver.replay.model.recordable.impl.EntityEquipmentSlot
+
+data class PlayerEntityData(val userName: String, val skin: PlayerSkinData?, val metadata: ByteArray,
+                            override val equipment: Map<EntityEquipmentSlot, RecordableItemStack>
+) :
+    BaseEntityData(), EquipmentEntityData {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

@@ -12,7 +12,6 @@ class RecEntityRemove(
     override val isReversible: Boolean
         get() = true
 
-    //Empty action because it is handled by the EntityManager
     override val reversedAction: List<RecordableAction>
-        get() = emptyList()
+       get() = listOf(RecEntitySpawn(position, entity))
 }

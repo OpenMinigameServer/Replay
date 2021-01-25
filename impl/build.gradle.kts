@@ -1,7 +1,9 @@
+val minestomVersion = "b37670e1c7"
+
 dependencies {
     implementation(project(":model"))
-    compileOnly(minestom("bf692d8043"))
-    testImplementation(minestom("bf692d8043"))
+    compileOnly(minestom(minestomVersion))
+    testImplementation(minestom(minestomVersion))
 }
 
 fun minestom(commit: String): String {

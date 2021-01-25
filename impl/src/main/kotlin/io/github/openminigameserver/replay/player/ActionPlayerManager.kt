@@ -14,6 +14,8 @@ object ActionPlayerManager {
         registerActionPlayer(RecPlayerHandAnimationPlayer)
         registerActionPlayer(RecEntitiesPositionPlayer)
         registerActionPlayer(RecEntityRemovePlayer)
+        registerActionPlayer(RecBlockStateUpdatePlayer)
+        registerActionPlayer(RecEntityEquipmentUpdatePlayer)
     }
 
     private inline fun <reified R : RecordableAction, T : ActionPlayer<R>> registerActionPlayer(rePlayer: T) {

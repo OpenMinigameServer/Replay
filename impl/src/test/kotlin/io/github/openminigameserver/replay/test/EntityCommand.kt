@@ -7,7 +7,11 @@ import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.arguments.ArgumentWord
 import net.minestom.server.command.builder.arguments.minecraft.registry.ArgumentEntityType
 import net.minestom.server.entity.Entity
+import net.minestom.server.entity.EntityCreature
 import net.minestom.server.entity.Player
+import net.minestom.server.entity.ai.goal.FollowTargetGoal
+import net.minestom.server.utils.time.TimeUnit
+import net.minestom.server.utils.time.UpdateOption
 
 object EntityCommand : Command("entity") {
 
@@ -22,9 +26,20 @@ object EntityCommand : Command("entity") {
             lastEntity.setInstance(sender.instance!!)
             entities.add(lastEntity)
 
+            if (lastEntity is EntityCreature) {
+                val targetGoal = FollowTargetGoal(lastEntity, UpdateOption(1, TimeUnit.TICK))
+                lastEntity.target = sender
+                lastEntity.goalSelectors.add(targetGoal)
+            }
+
         }, ArgumentWord("of").from("living"), ArgumentEntityType("type"))
         addSyntax({ sender: CommandSender, args: Arguments ->
-            entities.forEach { it.remove() }
+            entities.forEach {
+                if (it is EntityCreature) {
+                    it.currentGoalSelector?.end()
+                    it.goalSelectors.clear()
+                }
+                it.remove() }
             entities.clear()
         }, ArgumentWord("of").from("delete"))
     }

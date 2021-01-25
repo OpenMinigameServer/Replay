@@ -3,12 +3,14 @@ package io.github.openminigameserver.replay.extensions
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import io.github.openminigameserver.replay.model.Replay
+import io.github.openminigameserver.replay.model.recordable.RecordableItemStack
 import io.github.openminigameserver.replay.model.recordable.RecordablePosition
 import io.github.openminigameserver.replay.model.recordable.RecordableVector
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.model.recordable.entity.data.BaseEntityData
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerSkinData
+import io.github.openminigameserver.replay.model.recordable.impl.EntityEquipmentSlot
 import io.github.openminigameserver.replay.player.ReplaySession
 import io.github.openminigameserver.replay.recorder.ReplayRecorder
 import kotlinx.coroutines.CoroutineScope
@@ -17,9 +19,14 @@ import net.minestom.server.entity.Entity
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.PlayerSkin
 import net.minestom.server.instance.Instance
+import net.minestom.server.inventory.EquipmentHandler
+import net.minestom.server.item.ItemStack
+import net.minestom.server.network.packet.server.play.EntityEquipmentPacket
 import net.minestom.server.network.packet.server.play.EntityMetaDataPacket
+import net.minestom.server.utils.NBTUtils
 import net.minestom.server.utils.Position
 import net.minestom.server.utils.Vector
+import net.minestom.server.utils.binary.BinaryReader
 import net.minestom.server.utils.binary.BinaryWriter
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -29,6 +36,12 @@ fun RecordablePosition.toMinestom(): Position = Position(x, y, z, yaw, pitch)
 
 fun Vector.toReplay(): RecordableVector = RecordableVector(x, y, z)
 fun RecordableVector.toMinestom(): Vector = Vector(x, y, z)
+
+fun ItemStack.toReplay(): RecordableItemStack =
+    RecordableItemStack(BinaryWriter().also { NBTUtils.writeItemStack(it, this) }.toByteArray())
+
+fun RecordableItemStack.toMinestom(): ItemStack =
+    BinaryReader(nbtValue).let { NBTUtils.readItemStack(it) ?: ItemStack.getAirItem() }
 
 const val REPLAY_RECORDER_DATA = "replay:recorder"
 const val REPLAY_REPLAYER_DATA = "replay:replayer"
@@ -57,22 +70,23 @@ internal fun runOnSeparateThread(code: suspend CoroutineScope.() -> Unit) {
     }.start()
 }
 
-val profileCache: Cache<UUID, PlayerSkin> =
+internal val profileCache: Cache<UUID, PlayerSkin> =
     CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.MINUTES).build()
 
-fun Entity.toReplay(spawnOnStart: Boolean = true): RecordableEntity {
+internal fun Entity.toReplay(spawnOnStart: Boolean = true): RecordableEntity {
     var data: BaseEntityData? = null
     if (this is Player) {
         val skin = skin
 
-        data = PlayerEntityData(username, skin?.toReplay(), metadataPacket.getMetadataArray())
+        data = PlayerEntityData(username, skin?.toReplay(), metadataPacket.getMetadataArray(), getEquipmentForEntity())
     }
-    return RecordableEntity(entityId, entityType.namespaceID, position.toReplay(), data).apply { this.spawnOnStart =
-        spawnOnStart
+    return RecordableEntity(entityId, entityType.namespaceID, position.toReplay(), data).apply {
+        this.spawnOnStart =
+            spawnOnStart
     }
 }
 
-fun PlayerSkin.toReplay(): PlayerSkinData {
+internal fun PlayerSkin.toReplay(): PlayerSkinData {
     val decoder = Base64.getDecoder()
     return PlayerSkinData(decoder.decode(textures), decoder.decode(signature))
 }
@@ -83,10 +97,28 @@ fun PlayerSkinData.toMinestom(): PlayerSkin {
 }
 
 
-fun Replay.getEntity(entity: Entity): RecordableEntity {
+fun Replay.getEntity(entity: Entity): RecordableEntity? {
     return getEntityById(entity.entityId)
 }
 
-fun EntityMetaDataPacket.getMetadataArray(): ByteArray {
+internal fun EntityMetaDataPacket.getMetadataArray(): ByteArray {
     return BinaryWriter().use { consumer?.accept(it); it.toByteArray() }
 }
+
+internal fun EquipmentHandler.getEquipmentForEntity(): Map<EntityEquipmentSlot, RecordableItemStack> =
+    EntityEquipmentPacket.Slot.values().map {
+        EntityEquipmentSlot.valueOf(it.name) to getEquipment(it).toReplay()
+    }.toMap()
+
+internal fun EquipmentHandler.setEquipmentForEntity(equipment: Map<EntityEquipmentSlot, RecordableItemStack>) =
+    equipment.forEach {
+        val item = it.value.toMinestom()
+        when (it.key) {
+            EntityEquipmentSlot.MAIN_HAND -> itemInMainHand = item
+            EntityEquipmentSlot.OFF_HAND -> itemInOffHand = item
+            EntityEquipmentSlot.BOOTS -> boots = item
+            EntityEquipmentSlot.LEGGINGS -> leggings = item
+            EntityEquipmentSlot.CHESTPLATE -> chestplate = item
+            EntityEquipmentSlot.HELMET -> helmet = item
+        }
+    }

@@ -48,7 +48,17 @@ class ReplaySession constructor(
         targetDuration: Duration = Duration.ZERO,
         condition: (T) -> Boolean = { true }
     ): T? {
-        return replay.actions.filter { it.timestamp in startDuration..targetDuration }.lastOrNull { it is T && condition(it) } as? T
+        var start = startDuration
+        var end = targetDuration
+        val isReverse = start > end
+
+        if (isReverse) {
+            start = end.also { end = start }
+        }
+
+        return replay.actions.filter { it.timestamp in start..end }
+            .let { action -> if (isReverse) action.sortedByDescending { it.timestamp } else action.sortedBy { it.timestamp } }
+            .lastOrNull { it is T && condition(it) } as? T
     }
 
 
@@ -67,8 +77,17 @@ class ReplaySession constructor(
         targetDuration: Duration = Duration.ZERO,
         condition: (RecordableAction) -> Boolean = { true }
     ): List<RecordableAction> {
-        val actions = replay.actions.filter { it.timestamp in startDuration..targetDuration }
+        var start = startDuration
+        var end = targetDuration
+        val isReverse = start > end
+
+        if (isReverse) {
+            start = end.also { end = start }
+        }
+
+        val actions = replay.actions.filter { it.timestamp in start..end }
         return actions.filter { condition(it) }
+            .let { action -> if (isReverse) action.sortedByDescending { it.timestamp } else action.sortedBy { it.timestamp } }
     }
 
     inline fun <reified T : EntityRecordableAction> findActionsForEntity(
@@ -170,7 +189,7 @@ class ReplaySession constructor(
     /**
      * Update the current time and play actions accordingly.
      */
-    private var lastReplayTime = Duration.ZERO /* Used to detect if we're going backwards */
+    internal var lastReplayTime = Duration.ZERO /* Used to detect if we're going backwards */
 
     internal fun tick(forceTick: Boolean = false, isTimeStep: Boolean = false) {
         if (!hasSpawnedEntities) {
@@ -225,7 +244,6 @@ class ReplaySession constructor(
             }
         }
         lastTickTime = currentTime
-        lastReplayTime = this.time
     }
 
     val entityManager = EntityManager(this)

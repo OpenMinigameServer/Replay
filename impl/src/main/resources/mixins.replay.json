@@ -4,5 +4,7 @@
   "package": "io.github.openminigameserver.replay.mixins",
   "compatibilityLevel": "JAVA_11",
   "mixins": [
+    "InstanceMixin",
+    "PlayerInventoryMixin"
   ]
 }
