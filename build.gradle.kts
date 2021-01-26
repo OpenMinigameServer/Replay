@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.4.30-M1"
+    maven
 }
 
 
@@ -10,6 +11,7 @@ allprojects.forEach {
 
 
     it.apply(plugin = "kotlin")
+    it.apply(plugin = "maven")
 
     it.repositories {
         mavenCentral()
