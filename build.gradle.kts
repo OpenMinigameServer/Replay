@@ -48,5 +48,5 @@ allprojects.forEach {
 }
 
 dependencies {
-    implementation(project(":impl"))
+    api(project(":impl"))
 }
