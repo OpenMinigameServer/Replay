@@ -61,7 +61,7 @@ class ReplayRecorder(
 
         entitySpawnHandler = event@{
             val minestomEntity = it.entity.takeIf { e -> e.instance?.uniqueId == instance.uniqueId } ?: return@event
-            val entity = minestomEntity.toReplay(false)
+            val entity = replay.getEntityById(minestomEntity.entityId) ?: minestomEntity.toReplay(false)
             replay.entities[entity.id] = entity
             replay.addAction(
                 RecEntitySpawn(
