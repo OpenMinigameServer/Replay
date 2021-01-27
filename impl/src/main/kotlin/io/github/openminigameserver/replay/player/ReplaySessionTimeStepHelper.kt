@@ -31,7 +31,7 @@ class ReplaySessionTimeStepHelper(private val session: ReplaySession) {
             .forEach { groupedEntry ->
                 val first = groupedEntry.value.firstOrNull() as? Reversible ?: return@forEach
                 actionsToPlay.removeAll(groupedEntry.value)
-                first.batchActions(groupedEntry.value.let { if (isForwardStep) it.sortedBy { it.timestamp } else it.sortedByDescending { it.timestamp } })
+                first.batchActions(groupedEntry.value.let { it.sortedBy { it.timestamp } })
                     ?.let { it1 -> actionsToPlay.add(it1) }
             }
 
