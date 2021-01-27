@@ -19,7 +19,7 @@ object ReplayCommand {
     fun playReplay(sender: Player, @Argument("id", suggestions = "replay") id: UUID) {
         val instance = sender.instance!!
         if (instance.replaySession != null) {
-            sender.sendMessage(ChatColor.RED.toString() + "You are already in a replay session already.")
+            sender.sendMessage(ChatColor.RED.toString() + "You are already in a replay session.")
             return
         }
         runOnSeparateThread {
