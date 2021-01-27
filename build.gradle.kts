@@ -27,10 +27,10 @@ allprojects.forEach {
 
 
     it.dependencies {
-        implementation(kotlin("stdlib"))
+        api(kotlin("stdlib"))
 
-        implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.4.2")
+        api("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
+        api("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.4.2")
     }
 
     it.java {
