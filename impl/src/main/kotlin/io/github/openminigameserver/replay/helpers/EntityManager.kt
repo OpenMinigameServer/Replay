@@ -39,7 +39,7 @@ class EntityManager(var session: ReplaySession) {
             ) { it.positions.containsKey(entity) }
                 ?.let { finalPos = it.positions[entity]!!.position }
 
-            nativeEntity.velocity = Vector(0F, 0F, 0F)
+            nativeEntity.velocity = Vector(0.0, 0.0, 0.0)
             finalPos?.let { previousLoc ->
                 if (shouldSpawn) {
                     this.spawnEntity(entity, previousLoc)
@@ -51,7 +51,7 @@ class EntityManager(var session: ReplaySession) {
     fun spawnEntity(
         entity: RecordableEntity,
         position: RecordablePosition,
-        velocity: RecordableVector = RecordableVector(0f, 0f, 0f)
+        velocity: RecordableVector = RecordableVector(0.0, 0.0, 0.0)
     ) {
 
         replayEntities[entity.id]?.takeIf { !it.isRemoved }?.remove()
@@ -75,7 +75,7 @@ class EntityManager(var session: ReplaySession) {
         minestomEntity: Entity,
         position: Position
     ) {
-        minestomEntity.velocity = Vector(0F, 0F, 0F)
+        minestomEntity.velocity = Vector(0.0, 0.0, 0.0)
         minestomEntity.refreshPosition(position)
         minestomEntity.refreshView(position.yaw, position.pitch)
         minestomEntity.askSynchronization()

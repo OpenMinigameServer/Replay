@@ -1,4 +1,4 @@
-val minestomVersion = "b37670e1c7"
+val minestomVersion = "7a54b4162d"
 
 dependencies {
     api(project(":model"))

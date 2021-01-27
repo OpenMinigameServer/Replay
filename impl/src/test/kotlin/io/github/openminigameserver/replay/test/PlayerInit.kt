@@ -30,7 +30,7 @@ class PlayerInit : EventCallback<PlayerLoginEvent> {
         player.isFlying = true
 
         event.setSpawningInstance(instanceContainer)
-        player.respawnPoint = Position(0F, 42F, 0F)
+        player.respawnPoint = Position(0.0, 42.0, 0.0)
     }
 }
 

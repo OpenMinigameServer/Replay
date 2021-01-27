@@ -149,7 +149,7 @@ class ReplayRecorder(
     ) {
         replay.addAction(
             RecBlockStateUpdate(
-                RecordablePosition(x.toFloat(), y.toFloat(), z.toFloat(), 0f, 0f),
+                RecordablePosition(x.toDouble(), y.toDouble(), z.toDouble(), 0f, 0f),
                 newState
             )
         )
