@@ -16,7 +16,6 @@ import net.minestom.server.data.DataImpl
 import net.minestom.server.entity.Entity
 import net.minestom.server.event.entity.EntitySpawnEvent
 import net.minestom.server.event.instance.RemoveEntityFromInstanceEvent
-import net.minestom.server.event.player.PlayerChangeHeldSlotEvent
 import net.minestom.server.event.player.PlayerHandAnimationEvent
 import net.minestom.server.instance.Instance
 import net.minestom.server.inventory.EquipmentHandler
@@ -44,7 +43,6 @@ class ReplayRecorder(
 
 
     lateinit var handAnimationHandler: (event: PlayerHandAnimationEvent) -> Unit
-    lateinit var playerChangeHeldSlotHandler: (event: PlayerChangeHeldSlotEvent) -> Unit
     lateinit var entitySpawnHandler: (event: EntitySpawnEvent) -> Unit
     lateinit var removeEntityFromInstanceHandler: (event: RemoveEntityFromInstanceEvent) -> Unit
     private fun initListeners() {
@@ -52,9 +50,6 @@ class ReplayRecorder(
             val replay = event.player.instance?.takeIf { it.uniqueId == instance.uniqueId }?.recorder?.replay ?: return@eventCallback
 
             replay.getEntity(event.player)?.let { replay.addAction(RecPlayerHandAnimation(enumValueOf(event.hand.name), it)) }
-        }
-        playerChangeHeldSlotHandler = event@ {
-            notifyEntityEquipmentChange(it.player)
         }
 
         removeEntityFromInstanceHandler = event@{
@@ -67,21 +62,19 @@ class ReplayRecorder(
             val minestomEntity = it.entity.takeIf { e -> e.instance?.uniqueId == instance.uniqueId } ?: return@event
             val entity = minestomEntity.toReplay(false)
             replay.entities[entity.id] = entity
-            replay.addAction(RecEntitySpawn(minestomEntity.position.toReplay(), entity))
+            replay.addAction(RecEntitySpawn(RecordablePositionAndVector(minestomEntity.position.toReplay(), minestomEntity.velocity.toReplay()), entity))
         }
     }
 
     private fun registerListeners() {
         initListeners()
         instance.addEventCallback(PlayerHandAnimationEvent::class.java, handAnimationHandler)
-        instance.addEventCallback(PlayerChangeHeldSlotEvent::class.java, playerChangeHeldSlotHandler)
         instance.addEventCallback(EntitySpawnEvent::class.java, entitySpawnHandler)
         instance.addEventCallback(RemoveEntityFromInstanceEvent::class.java, removeEntityFromInstanceHandler)
     }
 
     private fun removeListeners() {
         instance.removeEventCallback(PlayerHandAnimationEvent::class.java, handAnimationHandler)
-        instance.removeEventCallback(PlayerChangeHeldSlotEvent::class.java, playerChangeHeldSlotHandler)
         instance.removeEventCallback(EntitySpawnEvent::class.java, entitySpawnHandler)
         instance.removeEventCallback(RemoveEntityFromInstanceEvent::class.java, removeEntityFromInstanceHandler)
     }

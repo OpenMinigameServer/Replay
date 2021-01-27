@@ -5,6 +5,8 @@
   "compatibilityLevel": "JAVA_11",
   "mixins": [
     "InstanceMixin",
-    "PlayerInventoryMixin"
+    "PacketUtilsMixin",
+    "PlayerInventoryMixin",
+    "PlayerMixin"
   ]
 }

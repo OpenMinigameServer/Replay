@@ -4,6 +4,7 @@ import io.github.openminigameserver.replay.ReplayManager
 import io.github.openminigameserver.replay.TickTime
 import io.github.openminigameserver.replay.extensions.replaySession
 import io.github.openminigameserver.replay.extensions.runOnSeparateThread
+import io.github.openminigameserver.replay.io.ReplayFile.Companion.dumpReplayToString
 import io.github.openminigameserver.replay.player.ReplaySession
 import net.minestom.server.chat.ChatColor
 import net.minestom.server.command.CommandSender
@@ -82,5 +83,32 @@ object ReplayCommand : Command("replay") {
             session.paused = false
 
         }, ArgumentWord("action").from("restart"))
+        addSyntax({ sender: CommandSender, args: Arguments ->
+            val id = kotlin.runCatching { UUID.fromString(args.getString("id")) }.getOrNull() ?: let {
+                sender.sendMessage(ChatColor.RED.toString() + "Please provide a valid Replay ID!")
+                return@addSyntax
+            }
+            runOnSeparateThread {
+                try {
+
+                    sender.sendMessage(ChatColor.GRAY.toString() + "Attempting to load replay...")
+
+                    val replay = ReplayManager.storageSystem.loadReplay(id)
+
+                    if (replay == null) {
+                        sender.sendMessage(ChatColor.RED.toString() + "Please provide a valid Replay ID!")
+                        return@runOnSeparateThread
+                    }
+
+                    sender.sendMessage(dumpReplayToString(replay))
+
+                } catch (e: Throwable) {
+                    e.printStackTrace()
+                    sender.sendMessage(ChatColor.RED.toString() + "An error occurred while trying to load your replay.")
+                    return@runOnSeparateThread
+                }
+            }
+
+        }, ArgumentWord("action").from("dump"), ArgumentWord("id"))
     }
 }

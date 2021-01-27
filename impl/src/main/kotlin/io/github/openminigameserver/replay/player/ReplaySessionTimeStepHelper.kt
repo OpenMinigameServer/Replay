@@ -35,12 +35,13 @@ class ReplaySessionTimeStepHelper(private val session: ReplaySession) {
                     ?.let { it1 -> actionsToPlay.add(it1) }
             }
 
-        actionsToPlay.forEach {
-            session.playAction(it)
-        }
-
+        //Reset entities first, then play actions
         entityManager.entities.forEach {
             entityManager.resetEntity(it, start, end)
+        }
+
+        actionsToPlay.forEach {
+            session.playAction(it)
         }
 
     }

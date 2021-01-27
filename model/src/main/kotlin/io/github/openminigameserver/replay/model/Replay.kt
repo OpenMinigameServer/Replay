@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentLinkedDeque
 import kotlin.time.Duration
 
 data class Replay(
-    val version: Int = 2,
+    val version: Int = 3,
     val id: UUID = UUID.randomUUID(),
     val recordStartTime: Instant = now(),
     val entities: MutableMap<Int, RecordableEntity> = mutableMapOf(),

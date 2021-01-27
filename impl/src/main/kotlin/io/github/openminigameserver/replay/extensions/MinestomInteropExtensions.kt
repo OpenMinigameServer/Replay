@@ -5,6 +5,7 @@ import com.google.common.cache.CacheBuilder
 import io.github.openminigameserver.replay.model.Replay
 import io.github.openminigameserver.replay.model.recordable.RecordableItemStack
 import io.github.openminigameserver.replay.model.recordable.RecordablePosition
+import io.github.openminigameserver.replay.model.recordable.RecordablePositionAndVector
 import io.github.openminigameserver.replay.model.recordable.RecordableVector
 import io.github.openminigameserver.replay.model.recordable.entity.EntityEquipmentSlot
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
@@ -30,6 +31,7 @@ import net.minestom.server.utils.binary.BinaryReader
 import net.minestom.server.utils.binary.BinaryWriter
 import java.util.*
 import java.util.concurrent.TimeUnit
+import java.util.function.Consumer
 
 fun Position.toReplay(): RecordablePosition = RecordablePosition(x, y, z, yaw, pitch)
 fun RecordablePosition.toMinestom(): Position = Position(x, y, z, yaw, pitch)
@@ -80,7 +82,7 @@ internal fun Entity.toReplay(spawnOnStart: Boolean = true): RecordableEntity {
 
         data = PlayerEntityData(username, skin?.toReplay(), metadataPacket.getMetadataArray(), getEquipmentForEntity())
     }
-    return RecordableEntity(entityId, entityType.namespaceID, position.toReplay(), data).apply {
+    return RecordableEntity(entityId, entityType.namespaceID, RecordablePositionAndVector(position.toReplay(), velocity.toReplay()), data).apply {
         this.spawnOnStart =
             spawnOnStart
     }
@@ -101,8 +103,12 @@ fun Replay.getEntity(entity: Entity): RecordableEntity? {
     return getEntityById(entity.entityId)
 }
 
+internal fun Consumer<BinaryWriter>.getMetadataArray(): ByteArray {
+    return BinaryWriter().use { accept(it); it.toByteArray() }
+}
+
 internal fun EntityMetaDataPacket.getMetadataArray(): ByteArray {
-    return BinaryWriter().use { consumer?.accept(it); it.toByteArray() }
+    return consumer.getMetadataArray()
 }
 
 internal fun EquipmentHandler.getEquipmentForEntity(): Map<EntityEquipmentSlot, RecordableItemStack> =

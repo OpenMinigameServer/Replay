@@ -10,7 +10,7 @@ import io.github.openminigameserver.replay.model.recordable.reverse.ApplyLastRev
 import io.github.openminigameserver.replay.model.recordable.reverse.DefaultStateReversible
 
 
-class RecEntityEquipmentUpdate(entity: RecordableEntity, val equipment: Map<EntityEquipmentSlot, RecordableItemStack>) :
+data class RecEntityEquipmentUpdate(override val entity: RecordableEntity, val equipment: Map<EntityEquipmentSlot, RecordableItemStack>) :
     EntityRecordableAction(entity), DefaultStateReversible, ApplyLastReversible {
 
     override fun provideDefaultState(): RecordableAction {

@@ -17,6 +17,10 @@ object ActionPlayerManager {
         registerActionPlayerGeneric(RecBlockStateUpdatePlayer)
         registerActionPlayerGeneric(RecEntityEquipmentUpdatePlayer)
         registerActionPlayerGeneric(RecBlockStateBatchUpdatePlayer)
+        registerActionPlayerGeneric(RecParticleEffectPlayer)
+        registerActionPlayerGeneric(RecBlockEffectPlayer)
+        registerActionPlayerGeneric(RecBlockBreakAnimationPlayer)
+        registerActionPlayerGeneric(RecSoundEffectPlayer)
     }
 
     /**

@@ -2,6 +2,7 @@ package io.github.openminigameserver.replay.helpers
 
 import io.github.openminigameserver.replay.extensions.toMinestom
 import io.github.openminigameserver.replay.model.recordable.RecordablePosition
+import io.github.openminigameserver.replay.model.recordable.RecordableVector
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntitiesPosition
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntityMove
@@ -25,24 +26,27 @@ class EntityManager(var session: ReplaySession) {
             it.remove()
             it.askSynchronization()
 
-          /*  val spawnAction = session.findActionsForEntity<RecEntitySpawn>(
-                entity = entity,
-                startDuration = startTime,
-                targetDuration = targetReplayTime
-            )
-            val removeAction = session.findActionsForEntity<RecEntityRemove>(
-                entity = entity,
-                startDuration = startTime,
-                targetDuration = targetReplayTime
-            )*/
+            /*  val spawnAction = session.findActionsForEntity<RecEntitySpawn>(
+                  entity = entity,
+                  startDuration = startTime,
+                  targetDuration = targetReplayTime
+              )
+              val removeAction = session.findActionsForEntity<RecEntityRemove>(
+                  entity = entity,
+                  startDuration = startTime,
+                  targetDuration = targetReplayTime
+              )*/
             //Check if Entity (has been spawned at start) or (has been spawned somewhere before and has not been removed before)
             val shouldSpawn = true
 
             //Find actual position
-            var finalPos = entity.spawnPosition
+            var finalPos = entity.spawnPosition?.position
             session.findActionsForEntity<RecEntityMove>(startTime, entity, targetReplayTime)
                 ?.let { finalPos = it.data.position }
-            session.findLastAction<RecEntitiesPosition>(startTime, targetReplayTime) { it.positions.containsKey(entity) }
+            session.findLastAction<RecEntitiesPosition>(
+                startTime,
+                targetReplayTime
+            ) { it.positions.containsKey(entity) }
                 ?.let { finalPos = it.positions[entity]!!.position }
 
             it.velocity = Vector(0F, 0F, 0F)
@@ -54,7 +58,11 @@ class EntityManager(var session: ReplaySession) {
         }
     }
 
-    fun spawnEntity(entity: RecordableEntity, position: RecordablePosition) {
+    fun spawnEntity(
+        entity: RecordableEntity,
+        position: RecordablePosition,
+        velocity: RecordableVector = RecordableVector(0f, 0f, 0f)
+    ) {
 
         replayEntities[entity.id]?.takeIf { !it.isRemoved }?.remove()
         val spawnPosition = position.toMinestom()
@@ -66,6 +74,7 @@ class EntityManager(var session: ReplaySession) {
             minestomEntity.setInstance(session.instance)
 
         refreshPosition(minestomEntity, spawnPosition)
+        minestomEntity.velocity = velocity.toMinestom()
 
         session.viewers.forEach {
             minestomEntity.addViewer(it)
@@ -90,6 +99,7 @@ class EntityManager(var session: ReplaySession) {
         getNativeEntity(entity)?.remove()
         replayEntities.remove(entity.id)
     }
+
     fun removeNativeEntity(entity: Entity) {
         entity.remove()
         replayEntities.remove(entity.entityId)

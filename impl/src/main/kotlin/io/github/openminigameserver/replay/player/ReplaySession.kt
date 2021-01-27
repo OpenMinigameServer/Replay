@@ -137,7 +137,7 @@ class ReplaySession constructor(
     override fun tick(forceTick: Boolean, isTimeStep: Boolean) {
         if (!hasSpawnedEntities) {
             replay.entities.values.filter { it.spawnOnStart }.forEach {
-                entityManager.spawnEntity(it, it.spawnPosition!!)
+                entityManager.spawnEntity(it, it.spawnPosition!!.position, it.spawnPosition!!.velocity)
             }
             playerStateHelper.init()
             hasSpawnedEntities = true

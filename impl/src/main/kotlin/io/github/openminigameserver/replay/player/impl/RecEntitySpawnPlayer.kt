@@ -8,6 +8,6 @@ import net.minestom.server.instance.Instance
 
 object RecEntitySpawnPlayer : ActionPlayer<RecEntitySpawn> {
     override fun play(action: RecEntitySpawn, session: ReplaySession, instance: Instance, viewers: List<Player>) {
-        session.entityManager.spawnEntity(action.entity, action.position)
+        session.entityManager.spawnEntity(action.entity, action.positionAndVelocity.position, action.positionAndVelocity.velocity)
     }
 }
