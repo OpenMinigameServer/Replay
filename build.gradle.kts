@@ -1,18 +1,17 @@
 plugins {
     kotlin("jvm") version "1.4.30-M1"
     id("com.github.johnrengelman.shadow") version "6.1.0"
-    maven
+    `maven-publish`
 }
 
 
 allprojects.forEach {
 
-    it.group = "io.github.openminigameserver"
+    it.group = "io.github.openminigameserver.Replay"
     it.version = "1.0-SNAPSHOT"
 
-
     it.apply(plugin = "kotlin")
-    it.apply(plugin = "maven")
+    it.apply(plugin = "maven-publish")
     it.apply(plugin = "com.github.johnrengelman.shadow")
 
     it.repositories {
@@ -47,6 +46,20 @@ allprojects.forEach {
     compileTestKotlin.kotlinOptions {
         jvmTarget = "11"
     }
+
+    it.publishing {
+        publications {
+            create<MavenPublication>(it.project.name) {
+                groupId = it.project.group.toString()
+                artifactId = it.project.name
+                version = it.project.version.toString()
+                from(it.components["java"])
+            }
+        }
+    }
+
+    if (it.tasks.findByName("install") != null)
+        it.tasks.replace("install").dependsOn("publishToMavenLocal")
 }
 
 dependencies {
