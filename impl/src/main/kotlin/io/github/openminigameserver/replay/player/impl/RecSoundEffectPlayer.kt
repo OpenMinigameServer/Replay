@@ -10,7 +10,12 @@ import net.minestom.server.sound.SoundCategory
 import net.minestom.server.utils.PacketUtils
 
 object RecSoundEffectPlayer : ActionPlayer<RecSoundEffect> {
-    override fun play(@Suppress("DuplicatedCode") action: RecSoundEffect, session: ReplaySession, instance: Instance, viewers: List<Player>) {
+    override fun play(
+        @Suppress("DuplicatedCode") action: RecSoundEffect,
+        session: ReplaySession,
+        instance: Instance,
+        viewers: List<Player>
+    ) {
         PacketUtils.sendGroupedPacket(viewers, SoundEffectPacket().apply {
             this.soundId = action.soundId
             this.soundCategory = action.soundCategory?.let { SoundCategory.valueOf(it.name) }

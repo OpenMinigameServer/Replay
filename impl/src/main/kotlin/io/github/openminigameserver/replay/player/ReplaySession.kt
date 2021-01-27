@@ -28,10 +28,10 @@ class ReplaySession constructor(
 ) : AbstractReplaySession() {
 
     var currentStepDuration = 10.seconds
-    set(value) {
-        field = value
-        updateReplayStateToViewers()
-    }
+        set(value) {
+            field = value
+            updateReplayStateToViewers()
+        }
 
     override val hasEnded: Boolean
         get() = time == replay.duration

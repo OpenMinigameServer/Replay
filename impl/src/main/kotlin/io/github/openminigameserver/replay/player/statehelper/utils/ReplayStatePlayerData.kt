@@ -5,9 +5,23 @@ import net.minestom.server.entity.Player
 import org.jglrxavpok.hephaistos.nbt.NBTCompound
 import org.jglrxavpok.hephaistos.nbt.NBTList
 
-class ReplayStatePlayerData(private val isAllowFlying: Boolean, private val isFlying: Boolean, private val gameMode: GameMode, private val heldSlot: Byte, private val exp: Float, private val inventory: NBTList<NBTCompound>) {
+class ReplayStatePlayerData(
+    private val isAllowFlying: Boolean,
+    private val isFlying: Boolean,
+    private val gameMode: GameMode,
+    private val heldSlot: Byte,
+    private val exp: Float,
+    private val inventory: NBTList<NBTCompound>
+) {
 
-    constructor(player: Player) : this(player.isAllowFlying, player.isFlying, player.gameMode, player.heldSlot, player.exp, getPlayerInventoryCopy(player))
+    constructor(player: Player) : this(
+        player.isAllowFlying,
+        player.isFlying,
+        player.gameMode,
+        player.heldSlot,
+        player.exp,
+        getPlayerInventoryCopy(player)
+    )
 
     fun apply(player: Player) {
         player.isAllowFlying = isAllowFlying

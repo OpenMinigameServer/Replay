@@ -82,7 +82,12 @@ internal fun Entity.toReplay(spawnOnStart: Boolean = true): RecordableEntity {
 
         data = PlayerEntityData(username, skin?.toReplay(), metadataPacket.getMetadataArray(), getEquipmentForEntity())
     }
-    return RecordableEntity(entityId, entityType.namespaceID, RecordablePositionAndVector(position.toReplay(), velocity.toReplay()), data).apply {
+    return RecordableEntity(
+        entityId,
+        entityType.namespaceID,
+        RecordablePositionAndVector(position.toReplay(), velocity.toReplay()),
+        data
+    ).apply {
         this.spawnOnStart =
             spawnOnStart
     }

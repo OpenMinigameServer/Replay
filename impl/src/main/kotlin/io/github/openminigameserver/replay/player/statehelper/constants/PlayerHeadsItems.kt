@@ -36,8 +36,11 @@ object PlayerHeadsItems {
         }
     }
 
-    fun getDecreaseSpeedItem() = buildItemStack(PlayerHeadsTextureData.decreaseSpeed, "Decrease Speed", ControlItemAction.COOL_DOWN)
-    fun getIncreaseSpeedItem() = buildItemStack(PlayerHeadsTextureData.increaseSpeed, "Increase Speed", ControlItemAction.SPEED_UP)
+    fun getDecreaseSpeedItem() =
+        buildItemStack(PlayerHeadsTextureData.decreaseSpeed, "Decrease Speed", ControlItemAction.COOL_DOWN)
+
+    fun getIncreaseSpeedItem() =
+        buildItemStack(PlayerHeadsTextureData.increaseSpeed, "Increase Speed", ControlItemAction.SPEED_UP)
 
     private fun buildItemStack(skin: PlayerSkin, name: String, action: ControlItemAction) =
         ItemStack(Material.PLAYER_HEAD, 1).apply {
@@ -51,7 +54,16 @@ object PlayerHeadsItems {
         setSkullOwner(UUID.randomUUID())
     }
 
-    fun getStepBackwardsItem(skipSpeed: Duration): ItemStack = buildItemStack(PlayerHeadsTextureData.backwards, "${skipSpeed.inSeconds.toInt()}s Backwards", ControlItemAction.STEP_BACKWARDS)
-    fun getStepForwardItem(skipSpeed: Duration): ItemStack = buildItemStack(PlayerHeadsTextureData.forwards, "${skipSpeed.inSeconds.toInt()}s Forward", ControlItemAction.STEP_FORWARD)
+    fun getStepBackwardsItem(skipSpeed: Duration): ItemStack = buildItemStack(
+        PlayerHeadsTextureData.backwards,
+        "${skipSpeed.inSeconds.toInt()}s Backwards",
+        ControlItemAction.STEP_BACKWARDS
+    )
+
+    fun getStepForwardItem(skipSpeed: Duration): ItemStack = buildItemStack(
+        PlayerHeadsTextureData.forwards,
+        "${skipSpeed.inSeconds.toInt()}s Forward",
+        ControlItemAction.STEP_FORWARD
+    )
 
 }

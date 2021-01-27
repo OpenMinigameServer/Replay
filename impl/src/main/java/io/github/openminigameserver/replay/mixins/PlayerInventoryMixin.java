@@ -12,7 +12,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PlayerInventory.class)
 public class PlayerInventoryMixin {
-    @Shadow @Final protected Player player;
+    @Shadow
+    @Final
+    protected Player player;
 
     @Inject(method = "update", at = @At("TAIL"))
     public void onInventoryUpdate(CallbackInfo ci) {

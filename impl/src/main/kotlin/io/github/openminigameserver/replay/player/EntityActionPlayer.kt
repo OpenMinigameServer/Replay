@@ -14,5 +14,12 @@ abstract class EntityActionPlayer<T : EntityRecordableAction> : ActionPlayer<T> 
         }
     }
 
-    abstract fun play(action: T, replayEntity: RecordableEntity, nativeEntity: Entity, session: ReplaySession, instance: Instance, viewers: List<Player>)
+    abstract fun play(
+        action: T,
+        replayEntity: RecordableEntity,
+        nativeEntity: Entity,
+        session: ReplaySession,
+        instance: Instance,
+        viewers: List<Player>
+    )
 }

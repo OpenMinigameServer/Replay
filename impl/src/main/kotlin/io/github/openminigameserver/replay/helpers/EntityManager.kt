@@ -22,20 +22,10 @@ class EntityManager(var session: ReplaySession) {
     private val replayEntities = mutableMapOf<Int, Entity>()
 
     fun resetEntity(entity: RecordableEntity, startTime: Duration, targetReplayTime: Duration) {
-        getNativeEntity(entity)?.let {
-            it.remove()
-            it.askSynchronization()
+        getNativeEntity(entity)?.let { nativeEntity ->
+            nativeEntity.remove()
+            nativeEntity.askSynchronization()
 
-            /*  val spawnAction = session.findActionsForEntity<RecEntitySpawn>(
-                  entity = entity,
-                  startDuration = startTime,
-                  targetDuration = targetReplayTime
-              )
-              val removeAction = session.findActionsForEntity<RecEntityRemove>(
-                  entity = entity,
-                  startDuration = startTime,
-                  targetDuration = targetReplayTime
-              )*/
             //Check if Entity (has been spawned at start) or (has been spawned somewhere before and has not been removed before)
             val shouldSpawn = true
 
@@ -49,7 +39,7 @@ class EntityManager(var session: ReplaySession) {
             ) { it.positions.containsKey(entity) }
                 ?.let { finalPos = it.positions[entity]!!.position }
 
-            it.velocity = Vector(0F, 0F, 0F)
+            nativeEntity.velocity = Vector(0F, 0F, 0F)
             finalPos?.let { previousLoc ->
                 if (shouldSpawn) {
                     this.spawnEntity(entity, previousLoc)

@@ -41,15 +41,16 @@ class ReplayRecorder(
     }
 
 
-
     lateinit var handAnimationHandler: (event: PlayerHandAnimationEvent) -> Unit
     lateinit var entitySpawnHandler: (event: EntitySpawnEvent) -> Unit
     lateinit var removeEntityFromInstanceHandler: (event: RemoveEntityFromInstanceEvent) -> Unit
     private fun initListeners() {
-        handAnimationHandler =  eventCallback@{ event: PlayerHandAnimationEvent ->
-            val replay = event.player.instance?.takeIf { it.uniqueId == instance.uniqueId }?.recorder?.replay ?: return@eventCallback
+        handAnimationHandler = eventCallback@{ event: PlayerHandAnimationEvent ->
+            val replay = event.player.instance?.takeIf { it.uniqueId == instance.uniqueId }?.recorder?.replay
+                ?: return@eventCallback
 
-            replay.getEntity(event.player)?.let { replay.addAction(RecPlayerHandAnimation(enumValueOf(event.hand.name), it)) }
+            replay.getEntity(event.player)
+                ?.let { replay.addAction(RecPlayerHandAnimation(enumValueOf(event.hand.name), it)) }
         }
 
         removeEntityFromInstanceHandler = event@{
@@ -62,7 +63,14 @@ class ReplayRecorder(
             val minestomEntity = it.entity.takeIf { e -> e.instance?.uniqueId == instance.uniqueId } ?: return@event
             val entity = minestomEntity.toReplay(false)
             replay.entities[entity.id] = entity
-            replay.addAction(RecEntitySpawn(RecordablePositionAndVector(minestomEntity.position.toReplay(), minestomEntity.velocity.toReplay()), entity))
+            replay.addAction(
+                RecEntitySpawn(
+                    RecordablePositionAndVector(
+                        minestomEntity.position.toReplay(),
+                        minestomEntity.velocity.toReplay()
+                    ), entity
+                )
+            )
         }
     }
 
