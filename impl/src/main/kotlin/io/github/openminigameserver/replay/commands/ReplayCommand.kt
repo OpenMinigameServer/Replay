@@ -1,114 +1,99 @@
 package io.github.openminigameserver.replay.commands
 
+import cloud.commandframework.annotations.Argument
+import cloud.commandframework.annotations.CommandMethod
 import io.github.openminigameserver.replay.ReplayManager
 import io.github.openminigameserver.replay.TickTime
 import io.github.openminigameserver.replay.extensions.replaySession
 import io.github.openminigameserver.replay.extensions.runOnSeparateThread
-import io.github.openminigameserver.replay.io.ReplayFile.Companion.dumpReplayToString
+import io.github.openminigameserver.replay.io.ReplayFile
 import io.github.openminigameserver.replay.player.ReplaySession
 import net.minestom.server.chat.ChatColor
-import net.minestom.server.command.CommandSender
-import net.minestom.server.command.builder.Arguments
-import net.minestom.server.command.builder.Command
-import net.minestom.server.command.builder.arguments.ArgumentWord
 import net.minestom.server.entity.Player
 import net.minestom.server.utils.time.TimeUnit
 import java.util.*
 import kotlin.time.Duration
 
-object ReplayCommand : Command("replay") {
-    init {
-        addSyntax({ sender: CommandSender, args: Arguments ->
-            if (sender !is Player) return@addSyntax
-            val id = kotlin.runCatching { UUID.fromString(args.getString("id")) }.getOrNull() ?: let {
-                sender.sendMessage(ChatColor.RED.toString() + "Please provide a valid Replay ID!")
-                return@addSyntax
-            }
+object ReplayCommand {
+    @CommandMethod("replay play <id>")
+    fun playReplay(sender: Player, @Argument("id", suggestions = "replay") id: UUID) {
+        val instance = sender.instance!!
+        if (instance.replaySession != null) {
+            sender.sendMessage(ChatColor.RED.toString() + "You are already in a replay session already.")
+            return
+        }
+        runOnSeparateThread {
+            try {
 
-            val instance = sender.instance!!
-            if (instance.replaySession != null) {
-                sender.sendMessage(ChatColor.RED.toString() + "You are already in a replay session already.")
-                return@addSyntax
-            }
-            runOnSeparateThread {
-                try {
+                sender.sendMessage(ChatColor.GRAY.toString() + "Attempting to load replay...")
 
-                    sender.sendMessage(ChatColor.GRAY.toString() + "Attempting to load replay...")
+                val replay = ReplayManager.storageSystem.loadReplay(id)
 
-                    val replay = ReplayManager.storageSystem.loadReplay(id)
-
-                    if (replay == null) {
-                        sender.sendMessage(ChatColor.RED.toString() + "Please provide a valid Replay ID!")
-                        return@runOnSeparateThread
-                    }
-
-                    val session = ReplaySession(
-                        instance,
-                        replay,
-                        instance.players.toMutableList(),
-                        TickTime(1, TimeUnit.MILLISECOND)
-                    )
-                    instance.replaySession = session
-                    session.init()
-
-                } catch (e: Throwable) {
-                    e.printStackTrace()
-                    sender.sendMessage(ChatColor.RED.toString() + "An error occurred while trying to load your replay.")
+                if (replay == null) {
+                    sender.sendMessage(ChatColor.RED.toString() + "Please provide a valid Replay ID!")
                     return@runOnSeparateThread
                 }
+
+                val session = ReplaySession(
+                    instance,
+                    replay,
+                    instance.players.toMutableList(),
+                    TickTime(1, TimeUnit.MILLISECOND)
+                )
+                instance.replaySession = session
+                session.init()
+
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                sender.sendMessage(ChatColor.RED.toString() + "An error occurred while trying to load your replay.")
+                return@runOnSeparateThread
             }
+        }
+    }
 
-        }, ArgumentWord("action").from("play"), ArgumentWord("id"))
-        addSyntax({ sender: CommandSender, args: Arguments ->
-            if (sender !is Player) return@addSyntax
-            val session = sender.instance!!.replaySession ?: return@addSyntax
+    @CommandMethod("replay pause|start|resume")
+    fun pauseReplay(sender: Player) {
+        val session = sender.instance!!.replaySession ?: return
 
-            session.paused = !session.paused
+        session.paused = !session.paused
+    }
 
-        }, ArgumentWord("action").from("play", "pause", "start"))
+    @CommandMethod("replay exit")
+    fun exitReplay(sender: Player) {
+        val session = sender.instance!!.replaySession ?: return
 
-        addSyntax({ sender: CommandSender, args: Arguments ->
-            if (sender !is Player) return@addSyntax
-            val session = sender.instance!!.replaySession ?: return@addSyntax
+        session.removeViewer(sender)
+    }
 
-            session.removeViewer(sender)
+    @CommandMethod("replay restart")
+    fun restartReplay(sender: Player) {
+        val session = sender.instance!!.replaySession ?: return
 
-        }, ArgumentWord("action").from("exit"))
+        session.time = Duration.ZERO
+        session.paused = false
+    }
 
-        addSyntax({ sender: CommandSender, args: Arguments ->
-            if (sender !is Player) return@addSyntax
-            val session = sender.instance!!.replaySession ?: return@addSyntax
+    @CommandMethod("replay dump <id>")
+    fun dumpReplay(sender: Player, @Argument("id", suggestions = "replay") id: UUID) {
+        runOnSeparateThread {
+            try {
+                sender.sendMessage(ChatColor.GRAY.toString() + "Attempting to load replay...")
 
-            session.time = Duration.ZERO
-            session.paused = false
+                val replay = ReplayManager.storageSystem.loadReplay(id)
 
-        }, ArgumentWord("action").from("restart"))
-        addSyntax({ sender: CommandSender, args: Arguments ->
-            val id = kotlin.runCatching { UUID.fromString(args.getString("id")) }.getOrNull() ?: let {
-                sender.sendMessage(ChatColor.RED.toString() + "Please provide a valid Replay ID!")
-                return@addSyntax
-            }
-            runOnSeparateThread {
-                try {
-
-                    sender.sendMessage(ChatColor.GRAY.toString() + "Attempting to load replay...")
-
-                    val replay = ReplayManager.storageSystem.loadReplay(id)
-
-                    if (replay == null) {
-                        sender.sendMessage(ChatColor.RED.toString() + "Please provide a valid Replay ID!")
-                        return@runOnSeparateThread
-                    }
-
-                    sender.sendMessage(dumpReplayToString(replay))
-
-                } catch (e: Throwable) {
-                    e.printStackTrace()
-                    sender.sendMessage(ChatColor.RED.toString() + "An error occurred while trying to load your replay.")
+                if (replay == null) {
+                    sender.sendMessage(ChatColor.RED.toString() + "Please provide a valid Replay ID!")
                     return@runOnSeparateThread
                 }
-            }
 
-        }, ArgumentWord("action").from("dump"), ArgumentWord("id"))
+                sender.sendMessage(ReplayFile.dumpReplayToString(replay))
+
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                sender.sendMessage(ChatColor.RED.toString() + "An error occurred while trying to load your replay.")
+                return@runOnSeparateThread
+            }
+        }
+
     }
 }

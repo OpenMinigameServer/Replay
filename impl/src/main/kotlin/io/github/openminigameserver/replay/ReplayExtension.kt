@@ -1,6 +1,7 @@
 package io.github.openminigameserver.replay
 
 import io.github.openminigameserver.replay.commands.ReplayCommand
+import io.github.openminigameserver.replay.commands.ReplayCommandManager
 import io.github.openminigameserver.replay.commands.StartRecordingCommand
 import io.github.openminigameserver.replay.commands.StopRecordingCommand
 import io.github.openminigameserver.replay.helpers.EntityHelper
@@ -29,10 +30,12 @@ class ReplayExtension : Extension() {
         }
         logger.info("Replay by OpenMinigameServer version ${BuildInfo.version}.")
 
-        MinecraftServer.getCommandManager().apply {
-            register(StartRecordingCommand)
-            register(StopRecordingCommand)
-            register(ReplayCommand)
+
+        ReplayCommandManager().apply {
+            annotationParser.parse(StartRecordingCommand)
+            annotationParser.parse(StopRecordingCommand)
+            annotationParser.parse(ReplayCommand)
+
         }
 
         ReplayListener.registerListeners()
