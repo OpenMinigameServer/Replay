@@ -1,6 +1,5 @@
 package io.github.openminigameserver.replay.model.recordable.reverse
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import io.github.openminigameserver.replay.AbstractReplaySession
 import io.github.openminigameserver.replay.model.recordable.RecordableAction
 import kotlin.time.Duration
@@ -13,7 +12,6 @@ interface Reversible {
     /**
      * States if actions like this are applied in batch
      */
-    @get:JsonIgnore
     val isAppliedInBatch: Boolean
         get() = false
 

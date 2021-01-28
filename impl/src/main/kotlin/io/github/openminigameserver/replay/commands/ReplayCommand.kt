@@ -6,7 +6,6 @@ import io.github.openminigameserver.replay.ReplayManager
 import io.github.openminigameserver.replay.TickTime
 import io.github.openminigameserver.replay.extensions.replaySession
 import io.github.openminigameserver.replay.extensions.runOnSeparateThread
-import io.github.openminigameserver.replay.io.ReplayFile
 import io.github.openminigameserver.replay.player.ReplaySession
 import net.minestom.server.chat.ChatColor
 import net.minestom.server.entity.Player
@@ -86,8 +85,7 @@ object ReplayCommand {
                     return@runOnSeparateThread
                 }
 
-                sender.sendMessage(ReplayFile.dumpReplayToString(replay))
-
+                //TODO: sender.sendMessage(ReplayFile.dumpReplayToString(replay))
             } catch (e: Throwable) {
                 e.printStackTrace()
                 sender.sendMessage(ChatColor.RED.toString() + "An error occurred while trying to load your replay.")

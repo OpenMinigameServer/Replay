@@ -1,46 +1,32 @@
 package io.github.openminigameserver.replay.io
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.dataformat.smile.databind.SmileMapper
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.fasterxml.jackson.module.kotlin.treeToValue
+import com.esotericsoftware.kryo.io.Input
+import com.esotericsoftware.kryo.io.Output
 import com.github.luben.zstd.ZstdInputStream
 import com.github.luben.zstd.ZstdOutputStream
+import io.github.openminigameserver.replay.io.format.readHeader
+import io.github.openminigameserver.replay.io.format.readReplayData
+import io.github.openminigameserver.replay.io.format.writeHeader
+import io.github.openminigameserver.replay.io.format.writeReplayData
 import io.github.openminigameserver.replay.model.Replay
 import java.io.File
 
 class ReplayFile(private val file: File, var replay: Replay? = null, private val isCompressed: Boolean = true) {
 
-    companion object {
-        private val mapper = SmileMapper().apply {
-            configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false)
-            setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
-
-            registerKotlinModule()
-            registerModule(ReplayModule())
-            registerModule(Jdk8Module())
-            registerModule(JavaTimeModule())
-        }
-
-        fun doMapAttempt() {
-            mapper.valueToTree<JsonNode>(Replay())
-        }
-
-        fun dumpReplayToString(replay: Replay): String {
-            return mapper.valueToTree<JsonNode>(replay).toPrettyString()
-        }
-    }
-
     fun loadReplay() {
-        replay = mapper.treeToValue(mapper.readTree(getInputStream()))
+        replay = Replay().apply {
+            Input(getInputStream().readAllBytes()).use {
+                it.readHeader(this)
+                it.readReplayData(this)
+            }
+        }
     }
 
     fun saveReplay() {
-        mapper.writeValue(getOutputStream(), replay)
+        Output(getOutputStream()).use {
+            it.writeHeader(replay!!)
+            it.writeReplayData(replay!!)
+        }
     }
 
     private fun getInputStream() = if (isCompressed) ZstdInputStream(file.inputStream()) else file.inputStream()

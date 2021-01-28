@@ -1,9 +1,7 @@
 package io.github.openminigameserver.replay.model.recordable.impl
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import io.github.openminigameserver.replay.model.recordable.RecordableAction
 
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 class RecParticleEffect(
     val particleId: Int = 0,
     val longDistance: Boolean = false,

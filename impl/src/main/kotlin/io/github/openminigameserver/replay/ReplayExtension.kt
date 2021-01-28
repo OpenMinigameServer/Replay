@@ -5,7 +5,6 @@ import io.github.openminigameserver.replay.commands.ReplayCommandManager
 import io.github.openminigameserver.replay.commands.StartRecordingCommand
 import io.github.openminigameserver.replay.commands.StopRecordingCommand
 import io.github.openminigameserver.replay.helpers.EntityHelper
-import io.github.openminigameserver.replay.io.ReplayFile
 import net.minestom.server.MinecraftServer
 import net.minestom.server.extensions.Extension
 import net.minestom.server.extras.selfmodification.MinestomRootClassLoader
@@ -43,9 +42,6 @@ class ReplayExtension : Extension() {
 
         EntityHelper.init()
         logger.info("Initialized entity helpers.")
-
-        ReplayFile.doMapAttempt()
-        logger.info("Warmed file I/O.")
     }
 
     override fun terminate() {
