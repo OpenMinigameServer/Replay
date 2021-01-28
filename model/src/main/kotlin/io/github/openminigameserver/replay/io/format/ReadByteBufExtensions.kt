@@ -52,7 +52,7 @@ fun Input.readReplayData(replay: Replay) {
         }
 
         repeat(readInt()) {
-            val result = (readObject() as? RecordableAction?).also { actions.add(it) }
+            (readObject() as? RecordableAction?).also { actions.add(it) }
         }
     }
 }
