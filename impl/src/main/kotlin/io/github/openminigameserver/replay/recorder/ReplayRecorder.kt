@@ -165,7 +165,6 @@ class ReplayRecorder(
         x: Int,
         y: Int,
         z: Int,
-        oldState: Short,
         newState: Short
     ) {
         replay.addAction(

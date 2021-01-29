@@ -24,7 +24,6 @@ public abstract class InstanceMixin {
         var recorder = MinestomInteropExtensionsKt.getRecorder(instance);
         if (recorder == null) return;
 
-        var oldState = chunk.getBlockStateId(x, y, z);
-        recorder.notifyBlockChange(x, y, z, oldState, blockStateId);
+        recorder.notifyBlockChange(x, y, z, blockStateId);
     }
 }
