@@ -1,8 +1,9 @@
-val minestomVersion = "7a54b4162d"
+val minestomVersion = "66817eb9c4"
+val cloudVersion = "58e8fd76f3"
 
 dependencies {
     api(project(":model"))
-    implementation("com.github.OpenMinigameServer:cloud-minestom:58e8fd76f3")
+    implementation("com.github.OpenMinigameServer:cloud-minestom:$cloudVersion")
     implementation("cloud.commandframework:cloud-annotations:1.4.0")
     compileOnly(minestom(minestomVersion))
     testImplementation(minestom(minestomVersion))
