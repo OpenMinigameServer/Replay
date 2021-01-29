@@ -71,7 +71,12 @@ internal object EntityHelper {
         entityTypeMap[EntityType.MOOSHROOM] = EntityMooshroom::class.java
     }
 
-    fun createEntity(type: EntityType, spawnPosition: Position, entityData: BaseEntityData?): Entity =
+    fun createEntity(
+        type: EntityType,
+        spawnPosition: Position,
+        entityData: BaseEntityData?,
+        isAutoViewable: Boolean
+    ): Entity =
         (if (type == EntityType.PLAYER && entityData is PlayerEntityData) {
             ReplayPlayerEntity(UUID.randomUUID(), entityData.userName, entityData.metadata).also {
                 it.skin = entityData.skin?.toMinestom()
@@ -92,7 +97,7 @@ internal object EntityHelper {
             }
 
         }).also {
-            it.isAutoViewable = false
+            it.isAutoViewable = isAutoViewable
             it.setNoGravity(true)
             if (it is LivingEntity) {
                 it.health = it.maxHealth

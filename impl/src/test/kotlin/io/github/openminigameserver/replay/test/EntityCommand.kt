@@ -21,7 +21,7 @@ object EntityCommand : Command("entity") {
             if (sender !is Player) return@addSyntax
             val type = args.getEntityType("type")
 
-            val lastEntity = EntityHelper.createEntity(type, sender.position, null)
+            val lastEntity = EntityHelper.createEntity(type, sender.position, null, false)
             lastEntity.isAutoViewable = true
             lastEntity.setInstance(sender.instance!!)
             entities.add(lastEntity)

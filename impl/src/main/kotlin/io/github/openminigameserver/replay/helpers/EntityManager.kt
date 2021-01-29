@@ -57,7 +57,12 @@ class EntityManager(var session: ReplaySession) {
         replayEntities[entity.id]?.takeIf { !it.isRemoved }?.remove()
         val spawnPosition = position.toMinestom()
         val minestomEntity =
-            EntityHelper.createEntity(Registries.getEntityType(entity.type)!!, spawnPosition, entity.entityData)
+            EntityHelper.createEntity(
+                Registries.getEntityType(entity.type)!!,
+                spawnPosition,
+                entity.entityData,
+                session.replay.hasChunks
+            )
         replayEntities[entity.id] = minestomEntity
 
         if (minestomEntity.instance != session.instance)

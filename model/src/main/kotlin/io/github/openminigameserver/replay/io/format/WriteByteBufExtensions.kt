@@ -33,6 +33,11 @@ fun Output.writeObject(obj: Any) {
     kryo.writeClassAndObject(this, obj)
 }
 
+inline fun <reified C> Output.writeCollection(obj: Collection<C>) {
+    writeInt(obj.size)
+    obj.forEach { kryo.writeObjectOrNull(this, it, C::class.java) }
+}
+
 fun Output.writeMap(map: Map<out Any, Any>) {
     writeInt(map.size)
     map.forEach { (k, v) ->
@@ -48,6 +53,9 @@ fun Output.writeHeader(header: ReplayHeader) {
         writeInstant(recordStartTime)
         writeMap(metadata)
         writeDuration(duration)
+        if (version > 3) {
+            writeCollection(chunks)
+        }
     }
 }
 

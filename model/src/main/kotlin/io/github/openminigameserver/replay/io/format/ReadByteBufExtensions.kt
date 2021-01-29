@@ -34,6 +34,12 @@ fun Input.readDuration(): Duration {
     return readLong().milliseconds
 }
 
+inline fun <reified C> Input.readToCollection(obj: MutableCollection<C>) {
+    repeat(readInt()) {
+        kryo.readObjectOrNull(this, C::class.java)?.let { it1 -> obj.add(it1) }
+    }
+}
+
 fun Input.readHeader(destination: ReplayHeader) {
     destination.apply {
         version = readInt()
@@ -41,6 +47,9 @@ fun Input.readHeader(destination: ReplayHeader) {
         recordStartTime = readInstant()
         metadata = readMap() as MutableMap<String, Any>
         duration = readDuration()
+        if (version > 3) {
+            readToCollection(chunks)
+        }
     }
 }
 

@@ -13,6 +13,9 @@ import java.io.File
 class ReplayExtension : Extension() {
     companion object {
         @JvmStatic
+        var registerCommands: Boolean = true
+
+        @JvmStatic
         val dataFolder by lazy {
             File(
                 MinecraftServer.getExtensionManager().extensionFolder,
@@ -30,11 +33,13 @@ class ReplayExtension : Extension() {
         logger.info("Replay by OpenMinigameServer version ${BuildInfo.version}.")
 
 
-        ReplayCommandManager().apply {
-            annotationParser.parse(StartRecordingCommand)
-            annotationParser.parse(StopRecordingCommand)
-            annotationParser.parse(ReplayCommand)
+        if (registerCommands) {
+            ReplayCommandManager().apply {
+                annotationParser.parse(StartRecordingCommand)
+                annotationParser.parse(StopRecordingCommand)
+                annotationParser.parse(ReplayCommand)
 
+            }
         }
 
         ReplayListener.registerListeners()

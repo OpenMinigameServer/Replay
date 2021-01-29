@@ -6,7 +6,7 @@ import io.github.openminigameserver.replay.ReplayManager
 import io.github.openminigameserver.replay.TickTime
 import io.github.openminigameserver.replay.extensions.replaySession
 import io.github.openminigameserver.replay.extensions.runOnSeparateThread
-import io.github.openminigameserver.replay.player.ReplaySession
+import io.github.openminigameserver.replay.player.ReplaySessionManager
 import net.minestom.server.chat.ChatColor
 import net.minestom.server.entity.Player
 import net.minestom.server.utils.time.TimeUnit
@@ -16,14 +16,13 @@ import kotlin.time.Duration
 object ReplayCommand {
     @CommandMethod("replay play <id>")
     fun playReplay(sender: Player, @Argument("id", suggestions = "replay") id: UUID) {
-        val instance = sender.instance!!
+        var instance = sender.instance!!
         if (instance.replaySession != null) {
             sender.sendMessage(ChatColor.RED.toString() + "You are already in a replay session.")
             return
         }
         runOnSeparateThread {
             try {
-
                 sender.sendMessage(ChatColor.GRAY.toString() + "Attempting to load replay...")
 
                 val replay = ReplayManager.storageSystem.loadReplay(id)
@@ -33,12 +32,13 @@ object ReplayCommand {
                     return@runOnSeparateThread
                 }
 
-                val session = ReplaySession(
-                    instance,
+                val session = ReplaySessionManager.createReplaySession(
                     replay,
                     instance.players.toMutableList(),
+                    instance,
                     TickTime(1, TimeUnit.MILLISECOND)
                 )
+                instance = session.instance
                 instance.replaySession = session
                 session.init()
 

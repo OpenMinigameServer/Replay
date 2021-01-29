@@ -12,8 +12,17 @@ import net.minestom.server.entity.Player
 
 object StartRecordingCommand {
 
+    @CommandMethod("startrecordingchunks")
+    fun startRecordingWithChunks(sender: Player) {
+        startRecordingReplay(sender, true)
+    }
+
     @CommandMethod("startrecording")
     fun startRecording(sender: Player) {
+        startRecordingReplay(sender)
+    }
+
+    private fun startRecordingReplay(sender: Player, recordChunks: Boolean = false) {
         sender.sendMessage(ChatColor.BRIGHT_GREEN.toString() + "Recording started.")
         sender.sendMessage(
             RichMessage.of(ColoredText.of(ChatColor.GOLD, "Click here to stop recording.")).setClickEvent(
@@ -22,7 +31,7 @@ object StartRecordingCommand {
         )
         val recorder = ReplayRecorder(
             sender.instance!!,
-            RecorderOptions()
+            RecorderOptions(recordInstanceChunks = recordChunks)
         )
         sender.recorder = recorder
 

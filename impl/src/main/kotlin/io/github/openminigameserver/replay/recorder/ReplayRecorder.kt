@@ -8,6 +8,7 @@ import io.github.openminigameserver.replay.extensions.recorder
 import io.github.openminigameserver.replay.extensions.toReplay
 import io.github.openminigameserver.replay.model.recordable.RecordablePosition
 import io.github.openminigameserver.replay.model.recordable.RecordablePositionAndVector
+import io.github.openminigameserver.replay.model.recordable.RecordedChunk
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.model.recordable.impl.*
 import io.github.openminigameserver.replay.recorder.PositionRecordType.*
@@ -106,7 +107,7 @@ class ReplayRecorder(
             val oldPosition = entityPositions[entity.uuid]
             val currentNewPosition =
                 RecordablePositionAndVector(currentPosition.toReplay(), entity.velocity.toReplay())
-            if (oldPosition == null || oldPosition != currentNewPosition || options.recordAllChanges) {
+            if (oldPosition == null || oldPosition != currentNewPosition || options.recordAllLocationChanges) {
                 val replayEntity = replay.getEntityById(entity.entityId) ?: return@forEach
                 recordedPositions[replayEntity] = currentNewPosition
                 entityPositions[entity.uuid] = currentNewPosition
@@ -123,6 +124,7 @@ class ReplayRecorder(
     }
 
     fun startRecording() {
+        recordInstanceIfNeeded()
         instance.entities.forEach { minestomEntity ->
             //Save all entities
             replay.apply {
@@ -131,6 +133,25 @@ class ReplayRecorder(
             }
         }
         isRecording = true
+    }
+
+    private fun recordInstanceIfNeeded() {
+        if (!options.recordInstanceChunks) return
+
+        instance.chunks.forEach {
+            replay.chunks.add(
+                RecordedChunk(
+                    it.chunkX,
+                    it.chunkZ,
+                    it.serializedData
+                        ?: throw Exception(
+                            "Unable to serialize chunk of type ${it.javaClass.name}.\n" +
+                                    "Please make sure that your chunks can be serialized if you want to save them in the replay."
+                        )
+                )
+            )
+
+        }
     }
 
     fun stopRecording() {

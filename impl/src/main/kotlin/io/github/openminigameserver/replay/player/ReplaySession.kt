@@ -17,15 +17,19 @@ import net.minestom.server.instance.Instance
 import net.minestom.server.network.packet.server.play.TeamsPacket
 import net.minestom.server.scoreboard.Team
 import net.minestom.server.utils.time.TimeUnit
+import java.util.*
+import java.util.concurrent.CountDownLatch
 import kotlin.time.Duration
 import kotlin.time.seconds
 
-class ReplaySession constructor(
+class ReplaySession internal constructor(
     internal val instance: Instance,
     override val replay: Replay,
     val viewers: MutableList<Player>,
     private val tickTime: TickTime = TickTime(1L, TimeUnit.TICK)
 ) : AbstractReplaySession() {
+
+    internal val viewerCountDownLatch = CountDownLatch(if (replay.hasChunks) viewers.size else 0)
 
     var currentStepDuration = 10.seconds
         set(value) {
@@ -87,15 +91,24 @@ class ReplaySession constructor(
     override fun init() {
         isInitialized = true
         viewers.forEach { p ->
-            viewerTeam.addMember(p.username)
+            setupViewer(p)
         }
-
         Thread {
+            viewerCountDownLatch.await()
             while (isInitialized) {
                 ticker.run()
                 Thread.sleep(tickTime.unit.toMilliseconds(tickTime.time))
             }
         }.start()
+    }
+
+    private val oldViewerInstanceMap = mutableMapOf<UUID, UUID>()
+    private fun setupViewer(p: Player) {
+        viewerTeam.addMember(p.username)
+        if (p.instance != instance) {
+            oldViewerInstanceMap[p.uuid] = p.instance!!.uniqueId
+            p.setInstance(instance)
+        }
     }
 
     override fun unInit() {
@@ -104,6 +117,9 @@ class ReplaySession constructor(
         instance.replaySession = null
         playerStateHelper.unInit()
         viewers.forEach { removeViewer(it) }
+        if (replay.hasChunks) {
+            MinecraftServer.getInstanceManager().unregisterInstance(instance)
+        }
     }
 
     fun removeViewer(player: Player) {
@@ -114,6 +130,10 @@ class ReplaySession constructor(
             viewerTeam.removeMember(player.username)
 
             player.sendActionBarMessage(ColoredText.of(""))
+
+            val oldInstance =
+                oldViewerInstanceMap[player.uuid]?.let { MinecraftServer.getInstanceManager().getInstance(it) }
+            oldInstance?.let { player.setInstance(oldInstance) }
         } catch (e: Throwable) {
             e.printStackTrace()
         } finally {
@@ -136,10 +156,13 @@ class ReplaySession constructor(
 
     override fun tick(forceTick: Boolean, isTimeStep: Boolean) {
         if (!hasSpawnedEntities) {
+
             replay.entities.values.filter { it.spawnOnStart }.forEach {
                 entityManager.spawnEntity(it, it.spawnPosition!!.position, it.spawnPosition!!.velocity)
             }
+
             playerStateHelper.init()
+
             hasSpawnedEntities = true
         }
 

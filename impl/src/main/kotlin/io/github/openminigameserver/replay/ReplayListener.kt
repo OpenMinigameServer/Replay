@@ -11,6 +11,7 @@ import net.minestom.server.MinecraftServer
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.fakeplayer.FakePlayer
+import net.minestom.server.event.instance.AddEntityToInstanceEvent
 import net.minestom.server.event.inventory.InventoryPreClickEvent
 import net.minestom.server.event.player.PlayerDisconnectEvent
 import net.minestom.server.event.player.PlayerHandAnimationEvent
@@ -24,6 +25,16 @@ object ReplayListener {
     private val playerDisconnectHandler: (event: PlayerDisconnectEvent) -> Unit = {
         if (it.player !is FakePlayer && it.player !is ReplayPlayerEntity)
             it.player.instance!!.replaySession?.removeViewer(it.player)
+    }
+    private val viewerJoinedReplaySession: (event: AddEntityToInstanceEvent) -> Unit = event@{
+        val player = it.entity as? Player ?: return@event
+        val instance = it.instance
+        val session = instance.replaySession ?: return@event
+
+        val isViewer = session.viewers.any { it.uuid == player.uuid }
+        if (!isViewer) return@event
+
+        session.viewerCountDownLatch.countDown()
     }
 
     private val playerSwapItemEvent: (event: PlayerSwapItemEvent) -> Unit = {
@@ -60,6 +71,7 @@ object ReplayListener {
     fun registerListeners() {
         val eventHandler = MinecraftServer.getGlobalEventHandler()
         eventHandler.addEventCallback(PlayerDisconnectEvent::class.java, playerDisconnectHandler)
+        eventHandler.addEventCallback(AddEntityToInstanceEvent::class.java, viewerJoinedReplaySession)
         eventHandler.addEventCallback(PlayerSwapItemEvent::class.java, playerSwapItemEvent)
         eventHandler.addEventCallback(PlayerUseItemEvent::class.java, useItemHandler)
         eventHandler.addEventCallback(InventoryPreClickEvent::class.java, inventoryPreClickHandler)
@@ -68,10 +80,6 @@ object ReplayListener {
             PlayerHandAnimationEvent::class.java,
             handAnimationHandler
         )
-        registerPacketListener()
-    }
-
-    private fun registerPacketListener() {
     }
 
     @JvmStatic
@@ -88,7 +96,8 @@ object ReplayListener {
                 }
             }
             is EntityMetaDataPacket -> {
-                handleRecording(players) { replay ->
+                val entity = Entity.getEntity(packet.entityId) as? Player
+                handleRecording(entity?.let { players.plus(entity) } ?: players) { replay ->
                     val metadataArray = packet.getMetadataArray()
 
                     replay.getEntityById(packet.entityId)?.let {
