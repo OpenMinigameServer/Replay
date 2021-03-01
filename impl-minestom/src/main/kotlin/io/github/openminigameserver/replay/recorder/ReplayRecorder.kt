@@ -11,7 +11,8 @@ import io.github.openminigameserver.replay.model.recordable.RecordablePositionAn
 import io.github.openminigameserver.replay.model.recordable.RecordedChunk
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.model.recordable.impl.*
-import io.github.openminigameserver.replay.recorder.PositionRecordType.*
+import io.github.openminigameserver.replay.recorder.PositionRecordType.GROUP_ALL
+import io.github.openminigameserver.replay.recorder.PositionRecordType.SEPARATE_ALL
 import net.minestom.server.MinecraftServer
 import net.minestom.server.data.DataImpl
 import net.minestom.server.entity.Entity

@@ -63,5 +63,5 @@ allprojects.forEach {
 }
 
 dependencies {
-    api(project(":impl"))
+    api(project(":impl-minestom"))
 }

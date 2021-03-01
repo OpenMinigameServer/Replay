@@ -16,6 +16,7 @@ import net.minestom.server.utils.time.UpdateOption
 object EntityCommand : Command("entity") {
 
     val entities = mutableListOf<Entity>()
+
     init {
         addSyntax({ sender: CommandSender, args: Arguments ->
             if (sender !is Player) return@addSyntax
@@ -39,7 +40,8 @@ object EntityCommand : Command("entity") {
                     it.currentGoalSelector?.end()
                     it.goalSelectors.clear()
                 }
-                it.remove() }
+                it.remove()
+            }
             entities.clear()
         }, ArgumentWord("of").from("delete"))
     }
