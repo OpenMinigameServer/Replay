@@ -1,16 +1,17 @@
-val minestomVersion = "66817eb9c4"
-val cloudVersion = "58e8fd76f3"
-
-dependencies {
-    api(project(":impl-abstraction"))
-    implementation("com.github.OpenMinigameServer:cloud-minestom:$cloudVersion")
-    implementation("cloud.commandframework:cloud-annotations:1.4.0")
-    compileOnly(minestom(minestomVersion))
-    testImplementation(minestom(minestomVersion))
+repositories {
+    // for development builds
+    maven(url = "https://oss.sonatype.org/content/repositories/snapshots/") {
+        name = "sonatype-oss-snapshots"
+    }
 }
 
-fun minestom(commit: String): String {
-    return "com.github.Minestom:Minestom:$commit"
+dependencies {
+    api(project(":model"))
+
+    implementation("cloud.commandframework:cloud-core:1.4.0")
+    implementation("cloud.commandframework:cloud-annotations:1.4.0")
+
+    implementation("net.kyori:adventure-api:4.4.0")
 }
 
 tasks {
