@@ -9,15 +9,15 @@ import java.util.function.Function
 
 val replayUsers = mutableMapOf<UUID, ReplayUser>()
 
-fun getReplayUser(player: Player) {
-    replayUsers.getOrPut(player.uuid) {}
+fun getReplayUser(player: Player): ReplayUser {
+    return replayUsers.getOrPut(player.uuid) { MinestomReplayUser(player) }
 }
 
 class ReplayCommandManager : MinestomCommandManager<ReplayUser>(
     AsynchronousCommandExecutionCoordinator.newBuilder<ReplayUser>().withAsynchronousParsing().build(),
     Function {
-        TODO()
+        getReplayUser(it.asPlayer())
     }, Function {
-        TODO()
+        (it as MinestomReplayUser).player
     }
 )

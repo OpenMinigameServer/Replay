@@ -111,7 +111,7 @@ object ReplayListener {
 
                 val recorder: ReplayRecorder = instance.recorder ?: return
 
-                recorder.notifyEntityEquipmentChange(entity)
+//TODO:                recorder.notifyEntityEquipmentChange(entity)
             }
             is EffectPacket -> {
                 handleEffectPacket(players, packet)

@@ -93,7 +93,6 @@ class ReplayRecorder(
         instance.entities.forEach { entity ->
             //Save all entities
             replay.apply {
-                val entity = entity
                 entities[entity.id] = entity.toReplay(replayExtension.platform)
             }
         }

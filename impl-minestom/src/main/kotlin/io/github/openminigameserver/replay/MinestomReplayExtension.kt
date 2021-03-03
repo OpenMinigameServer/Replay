@@ -10,7 +10,7 @@ import org.slf4j.Logger
 import java.io.File
 
 class MinestomReplayExtension : Extension() {
-    val minestomLogger: Logger = this.logger
+    val minestomLogger: Logger get() = this.logger
 
     companion object {
         @JvmStatic
@@ -22,15 +22,18 @@ class MinestomReplayExtension : Extension() {
         }
     }
 
-    val platform = MinestomReplayPlatform(this)
-    val extension = ReplayExtension(platform)
-
-    override fun initialize() {
+    init {
         val classLoader = this.javaClass.classLoader
         if (classLoader is MinestomRootClassLoader) {
             classLoader.protectedClasses.add("io.github.openminigameserver.replay.AbstractReplaySession")
             classLoader.protectedPackages.add("io.github.openminigameserver.replay.model")
         }
+    }
+
+    val platform = MinestomReplayPlatform(this)
+    val extension = ReplayExtension(platform)
+
+    override fun initialize() {
         extension.init()
 
         ReplayListener.registerListeners()

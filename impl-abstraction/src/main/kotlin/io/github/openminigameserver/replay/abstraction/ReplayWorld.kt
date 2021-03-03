@@ -9,8 +9,8 @@ import java.util.*
  */
 abstract class ReplayWorld {
     abstract val uuid: UUID
-    val replaySession: AbstractReplaySession? = null
-    val recorder: ReplayRecorder? = null
+    var replaySession: AbstractReplaySession? = null
+    var recorder: ReplayRecorder? = null
 
     abstract val entities: Iterable<ReplayEntity>
     abstract val chunks: Iterable<ReplayChunk>

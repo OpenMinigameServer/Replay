@@ -1,12 +1,6 @@
 package io.github.openminigameserver.replay.commands
 
-import cloud.commandframework.annotations.CommandMethod
-import io.github.openminigameserver.replay.ReplayManager
-import io.github.openminigameserver.replay.extensions.recorder
-import io.github.openminigameserver.replay.extensions.runOnSeparateThread
-import net.minestom.server.chat.*
-import net.minestom.server.entity.Player
-
+/*
 object StopRecordingCommand {
 
     @CommandMethod("stoprecording")
@@ -38,4 +32,4 @@ object StopRecordingCommand {
         }
 
     }
-}
+}*/

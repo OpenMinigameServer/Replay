@@ -2,6 +2,7 @@ package io.github.openminigameserver.replay.player
 
 import io.github.openminigameserver.replay.AbstractReplaySession
 import io.github.openminigameserver.replay.TickTime
+import io.github.openminigameserver.replay.TimeUnit
 import io.github.openminigameserver.replay.extensions.replaySession
 import io.github.openminigameserver.replay.helpers.EntityManager
 import io.github.openminigameserver.replay.model.Replay
@@ -16,7 +17,6 @@ import net.minestom.server.entity.Player
 import net.minestom.server.instance.Instance
 import net.minestom.server.network.packet.server.play.TeamsPacket
 import net.minestom.server.scoreboard.Team
-import net.minestom.server.utils.time.TimeUnit
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import kotlin.time.Duration

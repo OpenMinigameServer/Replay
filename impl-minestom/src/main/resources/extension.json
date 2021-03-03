@@ -1,6 +1,6 @@
 {
   "name": "Replay",
-  "entrypoint": "io.github.openminigameserver.replay.ReplayExtension",
+  "entrypoint": "io.github.openminigameserver.replay.MinestomReplayExtension",
   "version": "${version}",
   "authors": [
     "NickAcPT"

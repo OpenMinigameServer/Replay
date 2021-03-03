@@ -21,7 +21,7 @@ public class PlayerInventoryMixin {
         if (player.getInstance() != null) {
             var recorder = MinestomInteropExtensionsKt.getRecorder(player.getInstance());
             if (recorder != null) {
-                recorder.notifyEntityEquipmentChange(player);
+//                TODO: recorder.notifyEntityEquipmentChange(player);
             }
         }
     }

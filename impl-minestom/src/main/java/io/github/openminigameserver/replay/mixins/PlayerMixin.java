@@ -22,7 +22,7 @@ public abstract class PlayerMixin extends LivingEntity {
         if (getInstance() != null) {
             var recorder = MinestomInteropExtensionsKt.getRecorder(getInstance());
             if (recorder != null) {
-                recorder.notifyEntityEquipmentChange(this);
+                //TODO: recorder.notifyEntityEquipmentChange(this);
             }
         }
     }
