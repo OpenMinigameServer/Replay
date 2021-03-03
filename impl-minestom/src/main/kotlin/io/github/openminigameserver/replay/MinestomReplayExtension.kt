@@ -1,20 +1,18 @@
 package io.github.openminigameserver.replay
 
-import io.github.openminigameserver.replay.commands.ReplayCommand
-import io.github.openminigameserver.replay.commands.ReplayCommandManager
-import io.github.openminigameserver.replay.commands.StartRecordingCommand
-import io.github.openminigameserver.replay.commands.StopRecordingCommand
 import io.github.openminigameserver.replay.helpers.EntityHelper
+import io.github.openminigameserver.replay.platform.ReplayExtension
+import io.github.openminigameserver.replay.platform.minestom.MinestomReplayPlatform
 import net.minestom.server.MinecraftServer
 import net.minestom.server.extensions.Extension
 import net.minestom.server.extras.selfmodification.MinestomRootClassLoader
+import org.slf4j.Logger
 import java.io.File
 
-class ReplayExtension : Extension() {
-    companion object {
-        @JvmStatic
-        var registerCommands: Boolean = true
+class MinestomReplayExtension : Extension() {
+    val minestomLogger: Logger = this.logger
 
+    companion object {
         @JvmStatic
         val dataFolder by lazy {
             File(
@@ -24,23 +22,16 @@ class ReplayExtension : Extension() {
         }
     }
 
+    val platform = MinestomReplayPlatform(this)
+    val extension = ReplayExtension(platform)
+
     override fun initialize() {
         val classLoader = this.javaClass.classLoader
         if (classLoader is MinestomRootClassLoader) {
             classLoader.protectedClasses.add("io.github.openminigameserver.replay.AbstractReplaySession")
             classLoader.protectedPackages.add("io.github.openminigameserver.replay.model")
         }
-        logger.info("Replay by OpenMinigameServer version ${BuildInfo.version}.")
-
-
-        if (registerCommands) {
-            ReplayCommandManager().apply {
-                annotationParser.parse(StartRecordingCommand)
-                annotationParser.parse(StopRecordingCommand)
-                annotationParser.parse(ReplayCommand)
-
-            }
-        }
+        extension.init()
 
         ReplayListener.registerListeners()
         logger.info("Initialized event listeners.")

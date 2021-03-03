@@ -5,6 +5,7 @@ dependencies {
     api(project(":impl-abstraction"))
     implementation("com.github.OpenMinigameServer:cloud-minestom:$cloudVersion")
     implementation("cloud.commandframework:cloud-annotations:1.4.0")
+    implementation("com.github.mworzala:adventure-platform-minestom:799ef7eafa")
     compileOnly(minestom(minestomVersion))
     testImplementation(minestom(minestomVersion))
 }

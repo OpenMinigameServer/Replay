@@ -6,7 +6,7 @@ import io.github.openminigameserver.replay.model.storage.ReplayStorageSystem
 
 object ReplayManager {
     @JvmStatic
-    var storageSystem: ReplayStorageSystem = FileReplayStorageSystem(ReplayExtension.dataFolder)
+    var storageSystem: ReplayStorageSystem = FileReplayStorageSystem(MinestomReplayExtension.dataFolder)
 
     @JvmStatic
     fun createEmptyReplay() = Replay()

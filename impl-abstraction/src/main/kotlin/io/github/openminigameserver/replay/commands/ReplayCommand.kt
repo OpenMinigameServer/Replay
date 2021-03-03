@@ -3,7 +3,7 @@ package io.github.openminigameserver.replay.commands
 import cloud.commandframework.annotations.Argument
 import cloud.commandframework.annotations.CommandMethod
 import io.github.openminigameserver.replay.ReplayManager
-import io.github.openminigameserver.replay.ReplayUser
+import io.github.openminigameserver.replay.abstraction.ReplayUser
 import io.github.openminigameserver.replay.runOnSeparateThread
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor
