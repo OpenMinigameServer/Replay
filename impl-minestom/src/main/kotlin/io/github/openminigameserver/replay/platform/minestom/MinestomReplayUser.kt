@@ -5,6 +5,7 @@ import io.github.openminigameserver.replay.replayer.statehelper.ControlItemActio
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.platform.minestom.MinestomAudiences
 import net.kyori.adventure.platform.minestom.MinestomComponentSerializer
+import net.kyori.adventure.text.Component.text
 import net.minestom.server.entity.GameMode
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.PlayerSkin
@@ -80,7 +81,7 @@ private fun ReplayActionItemStack.toMinestom(): ItemStack {
             }
         }
 
-        displayName = MinestomComponentSerializer.get().serialize(title)
+        displayName = MinestomComponentSerializer.get().serialize(text("§r").append(title))
         controlItemAction = action
     }
 }

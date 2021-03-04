@@ -96,7 +96,7 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
             try {
                 it.playSound(Sound.sound(Key.key("entity.player.levelup"), Sound.Source.PLAYER, 1f, 1f))
             } catch (e: Throwable) {
-                e.printStackTrace()
+//                e.printStackTrace()
             }
         }
     }
@@ -186,7 +186,7 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
         try {
             player.playSound(Sound.sound(Key.key("block.lever.click"), Sound.Source.BLOCK, 1f, 1f))
         } catch (e: Throwable) {
-            e.printStackTrace()
+//            e.printStackTrace()
         }
         updateReplayStateToViewers()
     }
