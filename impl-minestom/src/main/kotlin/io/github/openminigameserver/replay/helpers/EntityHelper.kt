@@ -6,7 +6,6 @@ import io.github.openminigameserver.replay.model.recordable.entity.data.BaseEnti
 import io.github.openminigameserver.replay.model.recordable.entity.data.EquipmentEntityData
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
 import net.minestom.server.entity.*
-import net.minestom.server.entity.type.ambient.EntityBat
 import net.minestom.server.entity.type.animal.*
 import net.minestom.server.entity.type.decoration.EntityArmorStand
 import net.minestom.server.entity.type.decoration.EntityItemFrame
@@ -46,7 +45,6 @@ internal object EntityHelper {
         entityTypeMap[EntityType.ITEM] = ItemEntity::class.java
         entityTypeMap[EntityType.ITEM_FRAME] = EntityItemFrame::class.java
         entityTypeMap[EntityType.END_CRYSTAL] = EntityEndCrystal::class.java
-        entityTypeMap[EntityType.BAT] = EntityBat::class.java
         entityTypeMap[EntityType.SNOW_GOLEM] = EntitySnowman::class.java
         entityTypeMap[EntityType.RABBIT] = EntityRabbit::class.java
         entityTypeMap[EntityType.WITCH] = EntityWitch::class.java

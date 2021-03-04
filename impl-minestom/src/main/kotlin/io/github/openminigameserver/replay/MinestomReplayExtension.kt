@@ -14,12 +14,11 @@ class MinestomReplayExtension : Extension() {
 
     companion object {
         @JvmStatic
-        val dataFolder by lazy {
-            File(
-                MinecraftServer.getExtensionManager().extensionFolder,
-                "Replay"
-            ).also { it.mkdirs() }
-        }
+        lateinit var dataFolder: File
+
+        lateinit var platform: MinestomReplayPlatform
+
+        lateinit var extension: ReplayExtension
     }
 
     init {
@@ -30,10 +29,14 @@ class MinestomReplayExtension : Extension() {
         }
     }
 
-    val platform = MinestomReplayPlatform(this)
-    val extension = ReplayExtension(platform)
-
     override fun initialize() {
+        dataFolder = File(
+            MinecraftServer.getExtensionManager().extensionFolder,
+            "Replay"
+        ).also { it.mkdirs() }
+        platform = MinestomReplayPlatform(this)
+        extension = ReplayExtension(platform)
+
         extension.init()
 
         ReplayListener.platform = platform

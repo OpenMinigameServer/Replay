@@ -9,7 +9,7 @@ import net.minestom.server.entity.Player
 import net.minestom.server.instance.Instance
 import net.minestom.server.network.packet.server.play.EntityMetaDataPacket
 import net.minestom.server.utils.PacketUtils
-import java.util.function.Consumer
+import net.minestom.server.utils.binary.BinaryWriter
 
 object RecEntityMetadataPlayer : MinestomEntityActionPlayer<RecEntityMetadata>() {
     override fun play(
@@ -20,10 +20,11 @@ object RecEntityMetadataPlayer : MinestomEntityActionPlayer<RecEntityMetadata>()
         instance: Instance,
         viewers: List<Player>
     ) {
-        PacketUtils.sendGroupedPacket(viewers, EntityMetaDataPacket().apply {
-            entityId = nativeEntity.entityId
-            consumer = Consumer {
-                it.write(action.metadata)
+        PacketUtils.sendGroupedPacket(viewers, object : EntityMetaDataPacket() {
+            override fun write(writer: BinaryWriter) {
+                writer.writeVarInt(nativeEntity.entityId)
+                writer.write(action.metadata)
+                writer.writeByte(0xFF.toByte())
             }
         })
     }

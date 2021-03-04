@@ -20,5 +20,6 @@ class MinestomActionPlayerManager(platform: ReplayPlatform<MinestomReplayWorld, 
         registerActionPlayerGeneric(RecParticleEffectPlayer)
         registerActionPlayerGeneric(RecPlayerHandAnimationPlayer)
         registerActionPlayerGeneric(RecSoundEffectPlayer)
+        registerActionPlayerGeneric(RecBlockStateBatchUpdatePlayer)
     }
 }

@@ -14,8 +14,8 @@ interface ReplayEntity {
     val uuid: UUID
     val position: RecordablePosition
     val velocity: RecordableVector
-    val world: ReplayWorld
-    val instance: ReplayWorld get() = world
+    val world: ReplayWorld?
+    val instance: ReplayWorld? get() = world
 
     fun toReplay(replayPlatform: ReplayPlatform<ReplayWorld, ReplayUser, ReplayEntity>): RecordableEntity {
         return RecordableEntity(

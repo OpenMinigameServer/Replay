@@ -19,9 +19,9 @@ import java.util.concurrent.CountDownLatch
 import kotlin.time.Duration
 import kotlin.time.seconds
 
-class ReplaySession internal constructor(
+class ReplaySession constructor(
     internal val replayPlatform: ReplayPlatform<ReplayWorld, ReplayUser, ReplayEntity>,
-    internal val world: ReplayWorld,
+    val world: ReplayWorld,
     override val replay: Replay,
     val viewers: MutableList<ReplayUser>,
     private val tickTime: TickTime = TickTime(1L, TimeUnit.TICK)
@@ -98,7 +98,7 @@ class ReplaySession internal constructor(
     private fun setupViewer(p: ReplayUser) {
         replayPlatform.addToViewerTeam(p)
         if (p.instance != world) {
-            oldViewerInstanceMap[p.uuid] = p.instance.uuid
+            p.instance?.uuid?.let { oldViewerInstanceMap[p.uuid] = it }
             p.setWorld(world)
         }
     }

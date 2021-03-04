@@ -1,28 +1,44 @@
 package io.github.openminigameserver.replay.platform.minestom
 
 import io.github.openminigameserver.replay.abstraction.*
+import io.github.openminigameserver.replay.replayer.statehelper.ControlItemAction
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.platform.minestom.MinestomAudiences
+import net.kyori.adventure.platform.minestom.MinestomComponentSerializer
+import net.minestom.server.entity.GameMode
 import net.minestom.server.entity.Player
+import net.minestom.server.entity.PlayerSkin
+import net.minestom.server.item.ItemStack
+import net.minestom.server.item.Material
+import net.minestom.server.item.metadata.PlayerHeadMeta
+import java.util.*
 
 internal val audiences = MinestomAudiences.create()
 
 class MinestomReplayUser(val replayPlatform: MinestomReplayPlatform, val player: Player) : ReplayUser(),
     ReplayEntity by MinestomReplayEntity(replayPlatform, player) {
     override var exp: Float
-        get() = TODO("Not yet implemented")
-        set(value) {}
+        get() = player.exp
+        set(value) {
+            player.exp = value
+        }
     override val heldSlot: Byte
-        get() = TODO("Not yet implemented")
+        get() = player.heldSlot
     override var isFlying: Boolean
-        get() = TODO("Not yet implemented")
-        set(value) {}
+        get() = player.isFlying
+        set(value) {
+            player.isFlying = value
+        }
     override var isAllowFlying: Boolean
-        get() = TODO("Not yet implemented")
-        set(value) {}
+        get() = player.isFlying
+        set(value) {
+            player.isFlying = value
+        }
     override var gameMode: ReplayGameMode
-        get() = TODO("Not yet implemented")
-        set(value) {}
+        get() = ReplayGameMode.valueOf(player.gameMode.name)
+        set(value) {
+            player.gameMode = GameMode.valueOf(value.name)
+        }
     override val audience: Audience = audiences.player(player)
     override val name: String
         get() = player.username
@@ -40,6 +56,31 @@ class MinestomReplayUser(val replayPlatform: MinestomReplayPlatform, val player:
     }
 
     override fun setItemStack(slot: Int, itemStack: ReplayActionItemStack) {
-        TODO("Not yet implemented")
+        player.inventory.setItemStack(slot, itemStack.toMinestom())
+    }
+}
+
+private fun ReplayActionItemStack.toMinestom(): ItemStack {
+    val material = when (action) {
+        ControlItemAction.NONE -> Material.AIR
+
+        ControlItemAction.PAUSE -> Material.PINK_DYE
+        ControlItemAction.RESUME -> Material.GRAY_DYE
+        ControlItemAction.PLAY_AGAIN -> Material.LIME_DYE
+
+        else -> Material.PLAYER_HEAD
+    }
+
+    return ItemStack(material, 1).apply {
+        val itemSkin = skin
+        if (itemSkin != null) {
+            itemMeta = PlayerHeadMeta().apply {
+                setSkullOwner(UUID.randomUUID())
+                setPlayerSkin(PlayerSkin(itemSkin.value, itemSkin.signature))
+            }
+        }
+
+        displayName = MinestomComponentSerializer.get().serialize(title)
+        controlItemAction = action
     }
 }

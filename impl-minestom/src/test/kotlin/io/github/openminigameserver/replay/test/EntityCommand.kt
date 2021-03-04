@@ -1,18 +1,6 @@
 package io.github.openminigameserver.replay.test
 
-import io.github.openminigameserver.replay.helpers.EntityHelper
-import net.minestom.server.command.CommandSender
-import net.minestom.server.command.builder.Arguments
-import net.minestom.server.command.builder.Command
-import net.minestom.server.command.builder.arguments.ArgumentWord
-import net.minestom.server.command.builder.arguments.minecraft.registry.ArgumentEntityType
-import net.minestom.server.entity.Entity
-import net.minestom.server.entity.EntityCreature
-import net.minestom.server.entity.Player
-import net.minestom.server.entity.ai.goal.FollowTargetGoal
-import net.minestom.server.utils.time.TimeUnit
-import net.minestom.server.utils.time.UpdateOption
-
+/*
 object EntityCommand : Command("entity") {
 
     val entities = mutableListOf<Entity>()
@@ -45,4 +33,4 @@ object EntityCommand : Command("entity") {
             entities.clear()
         }, ArgumentWord("of").from("delete"))
     }
-}
+}*/

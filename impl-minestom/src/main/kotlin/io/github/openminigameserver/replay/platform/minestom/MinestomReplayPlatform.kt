@@ -4,21 +4,28 @@ import cloud.commandframework.CommandManager
 import cloud.commandframework.annotations.AnnotationParser
 import io.github.openminigameserver.replay.MinestomReplayExtension
 import io.github.openminigameserver.replay.TickTime
-import io.github.openminigameserver.replay.abstraction.ReplayActionItemStack
-import io.github.openminigameserver.replay.abstraction.ReplayEntity
-import io.github.openminigameserver.replay.abstraction.ReplayUser
-import io.github.openminigameserver.replay.abstraction.ReplayWorld
+import io.github.openminigameserver.replay.abstraction.*
+import io.github.openminigameserver.replay.helpers.EntityManager
 import io.github.openminigameserver.replay.model.Replay
 import io.github.openminigameserver.replay.model.recordable.entity.data.BaseEntityData
 import io.github.openminigameserver.replay.platform.IdHelperContainer
 import io.github.openminigameserver.replay.platform.ReplayPlatform
 import io.github.openminigameserver.replay.replayer.ActionPlayerManager
 import io.github.openminigameserver.replay.replayer.IEntityManager
+import io.github.openminigameserver.replay.replayer.ReplayChunkLoader
 import io.github.openminigameserver.replay.replayer.ReplaySession
+import net.kyori.adventure.platform.minestom.MinestomComponentSerializer
+import net.kyori.adventure.text.Component
 import net.minestom.server.MinecraftServer
+import net.minestom.server.chat.ChatColor
+import net.minestom.server.chat.ColoredText
+import net.minestom.server.data.DataImpl
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.Player
 import net.minestom.server.item.ItemStack
+import net.minestom.server.item.metadata.PlayerHeadMeta
+import net.minestom.server.network.packet.server.play.TeamsPacket
+import net.minestom.server.scoreboard.Team
 import net.minestom.server.timer.Task
 import net.minestom.server.utils.time.TimeUnit
 import java.io.File
@@ -52,35 +59,50 @@ class MinestomReplayPlatform(private val replayExtension: MinestomReplayExtensio
     }
 
     override fun getEntityType(replayEntity: MinestomReplayEntity): String {
-        TODO("Not yet implemented")
+        return replayEntity.entity.entityType.namespaceID
     }
 
     override fun getEntityData(replayEntity: MinestomReplayEntity): BaseEntityData? {
-        TODO("Not yet implemented")
+        return null
     }
 
     override val actionPlayerManager: ActionPlayerManager<MinestomReplayWorld, MinestomReplayUser, MinestomReplayEntity> =
         MinestomActionPlayerManager(this)
 
+    private val viewerTeam: Team = MinecraftServer.getTeamManager().createBuilder("ReplayViewers")
+        .prefix(ColoredText.of(ChatColor.GRAY, "[Viewer] "))
+        .collisionRule(TeamsPacket.CollisionRule.NEVER)
+        .teamColor(ChatColor.GRAY)
+        .build()
+
     override fun addToViewerTeam(p: MinestomReplayUser) {
-        TODO("Not yet implemented")
+        viewerTeam.addMember(p.player.username)
+    }
+
+    override fun removeFromViewerTeam(player: MinestomReplayUser) {
+        viewerTeam.removeMember(player.player.username)
     }
 
     override fun unregisterWorld(instance: MinestomReplayWorld) {
         MinecraftServer.getInstanceManager().unregisterInstance(instance.instance)
     }
 
-    override fun removeFromViewerTeam(player: MinestomReplayUser) {
-        TODO("Not yet implemented")
-    }
-
     override fun getWorldById(it: UUID): MinestomReplayWorld {
-        TODO("Not yet implemented")
+        return worlds.getOrCompute(it)
     }
 
     override fun getEntityManager(replaySession: ReplaySession): IEntityManager<MinestomReplayUser, MinestomReplayEntity> {
-        TODO("Not yet implemented")
+        return EntityManager(MinestomReplayExtension.platform, replaySession)
     }
+
+    private fun createEmptyReplayInstance(replay: Replay) =
+        (
+                MinecraftServer.getInstanceManager().createInstanceContainer().apply {
+                    enableAutoChunkLoad(true)
+                    data = DataImpl()
+                    chunkLoader = ReplayChunkLoader(replay)
+                }
+                ).let { worlds.getOrCompute(it.uniqueId) }
 
     override fun createReplaySession(
         replay: Replay,
@@ -88,30 +110,52 @@ class MinestomReplayPlatform(private val replayExtension: MinestomReplayExtensio
         instance: ReplayWorld?,
         tickTime: TickTime
     ): ReplaySession {
-        TODO("Not yet implemented")
+        val hasChunks = replay.hasChunks
+        val finalInstance =
+            if (hasChunks) createEmptyReplayInstance(replay) else instance!!
+
+        return ReplaySession(
+            MinestomReplayExtension.platform as ReplayPlatform<ReplayWorld, ReplayUser, ReplayEntity>,
+            finalInstance,
+            replay,
+            viewers,
+            tickTime
+        )
     }
 
     override fun getPlayerInventoryCopy(player: MinestomReplayUser): Any {
-        TODO("Not yet implemented")
+        return Any()
     }
 
     override fun loadPlayerInventoryCopy(player: MinestomReplayUser, inventory: Any) {
-        TODO("Not yet implemented")
+//        TODO("Not yet implemented")
     }
 
     fun getPlayer(player: Player): ReplayUser {
-        return entities.getOrCompute(player.uuid) as ReplayUser
+        return entities.getOrCompute(player.entityId) as ReplayUser
     }
 
     fun getItemStack(itemInHand: ItemStack): ReplayActionItemStack {
-        TODO("Not yet implemented")
+        val action = itemInHand.controlItemAction
+        val skin = (itemInHand.itemMeta as? PlayerHeadMeta)?.playerSkin?.let {
+            ReplayHeadTextureSkin(
+                it.textures,
+                it.signature
+            )
+        }
+
+        return ReplayActionItemStack(itemInHand.displayName?.let {
+            MinestomComponentSerializer.get().deserialize(
+                it
+            )
+        } ?: Component.empty(), action, skin)
     }
 
     override val worlds: IdHelperContainer<UUID, MinestomReplayWorld> =
         IdHelperContainer { MinestomReplayWorld(MinecraftServer.getInstanceManager().getInstance(this)!!) }
-    override val entities: IdHelperContainer<UUID, ReplayEntity>
+    override val entities: IdHelperContainer<Int, ReplayEntity>
         get() = IdHelperContainer {
-            val entity = Entity.getEntity(this)!!
+            val entity: Entity = Entity.getEntity(this) ?: Player.getEntity(this)!!
             if (entity is Player) MinestomReplayUser(this@MinestomReplayPlatform, entity) else
                 MinestomReplayEntity(this@MinestomReplayPlatform, entity)
         }

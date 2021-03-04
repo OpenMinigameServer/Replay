@@ -29,10 +29,10 @@ object StartRecordingCommand {
         )
         val recorder = ReplayRecorder(
             replayManager.extension,
-            sender.instance,
+            sender.instance!!,
             RecorderOptions(recordInstanceChunks = recordChunks)
         )
-        sender.instance.recorder = recorder
+        sender.instance!!.recorder = recorder
 
         recorder.startRecording()
     }

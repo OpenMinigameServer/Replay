@@ -9,8 +9,6 @@ import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEn
 import io.github.openminigameserver.replay.replayer.ReplaySession
 import io.github.openminigameserver.replay.replayer.statehelper.constants.*
 import io.github.openminigameserver.replay.replayer.statehelper.utils.ReplayStatePlayerData
-import net.kyori.adventure.key.Key
-import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component.empty
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor
@@ -92,7 +90,13 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
     }
 
     private fun playLoadedSoundToViewers() {
-        viewers.forEach { it.playSound(Sound.sound(Key.key("entity.player.levelup"), Sound.Source.PLAYER, 1f, 1f)) }
+        viewers.forEach {
+            try {
+//                todo: it.playSound(Sound.sound(Key.key("entity.player.levelup"), Sound.Source.PLAYER, 1f, 1f))
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
+        }
     }
 
     private val oldData = mutableMapOf<UUID, ReplayStatePlayerData>()
@@ -177,8 +181,11 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
             }
             else -> TODO(action.name)
         }
-
-        player.playSound(Sound.sound(Key.key("block.lever.click"), Sound.Source.BLOCK, 1f, 1f))
+        try {
+//      todo:      player.playSound(Sound.sound(Key.key("block.lever.click"), Sound.Source.BLOCK, 1f, 1f))
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
         updateReplayStateToViewers()
     }
 

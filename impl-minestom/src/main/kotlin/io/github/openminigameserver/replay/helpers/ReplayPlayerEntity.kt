@@ -3,12 +3,13 @@ package io.github.openminigameserver.replay.helpers
 import io.netty.channel.local.LocalAddress
 import net.minestom.server.entity.Player
 import net.minestom.server.network.packet.server.ServerPacket
+import net.minestom.server.network.packet.server.play.EntityMetaDataPacket
 import net.minestom.server.network.player.PlayerConnection
 import net.minestom.server.utils.binary.BinaryWriter
 import java.net.SocketAddress
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.function.Consumer
+
 
 class ReplayPlayerEntity(uuid: UUID, username: String, private val firstMetadata: ByteArray) :
     Player(uuid, "$username§r".take(16), ReplayPlayerConnection()) {
@@ -17,12 +18,19 @@ class ReplayPlayerEntity(uuid: UUID, username: String, private val firstMetadata
     }
 
     private var isFirstMetadata = true
-    override fun getMetadataConsumer(): Consumer<BinaryWriter> {
+
+    override fun getMetadataPacket(): EntityMetaDataPacket {
         if (isFirstMetadata) {
             isFirstMetadata = false
-            return Consumer { it.write(firstMetadata) }
+            return object : EntityMetaDataPacket() {
+                override fun write(writer: BinaryWriter) {
+                    writer.writeVarInt(this@ReplayPlayerEntity.entityId)
+                    writer.write(firstMetadata)
+                    writer.writeByte(0xFF.toByte())
+                }
+            }
         }
-        return super.getMetadataConsumer()
+        return super.getMetadataPacket()
     }
 }
 

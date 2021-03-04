@@ -2,6 +2,8 @@ package io.github.openminigameserver.replay.extensions
 
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
+import io.github.openminigameserver.replay.MinestomReplayExtension
+import io.github.openminigameserver.replay.abstraction.ReplayWorld
 import io.github.openminigameserver.replay.model.Replay
 import io.github.openminigameserver.replay.model.recordable.RecordableItemStack
 import io.github.openminigameserver.replay.model.recordable.RecordablePosition
@@ -55,15 +57,18 @@ var Player.recorder: ReplayRecorder?
     }
 
 var Instance.recorder: ReplayRecorder?
-    get() = data?.get(REPLAY_RECORDER_DATA)
+    get() = replayWorld.recorder
     set(value) {
-        data?.set(REPLAY_RECORDER_DATA, value)
+        replayWorld.recorder = value
     }
 
+val Instance.replayWorld: ReplayWorld
+    get() = MinestomReplayExtension.platform.getWorldById(uniqueId)
+
 var Instance.replaySession: ReplaySession?
-    get() = data?.get(REPLAY_REPLAYER_DATA)
+    get() = replayWorld.replaySession
     set(value) {
-        data?.set(REPLAY_REPLAYER_DATA, value)
+        replayWorld.replaySession = value
     }
 
 internal fun runOnSeparateThread(code: suspend CoroutineScope.() -> Unit) {
@@ -113,7 +118,9 @@ internal fun Consumer<BinaryWriter>.getMetadataArray(): ByteArray {
 }
 
 internal fun EntityMetaDataPacket.getMetadataArray(): ByteArray {
-    return consumer.getMetadataArray()
+    val binaryWriter = BinaryWriter()
+    write(binaryWriter)
+    return binaryWriter.toByteArray()
 }
 
 internal fun EquipmentHandler.getEquipmentForEntity(): Map<EntityEquipmentSlot, RecordableItemStack> =

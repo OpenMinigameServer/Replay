@@ -18,10 +18,13 @@ class MinestomReplayEntity(private val replayPlatform: MinestomReplayPlatform, v
         get() = entity.uuid
     override val position: RecordablePosition
         get() = entity.position.toReplay()
-    override val velocity: RecordableVector
+    override var velocity: RecordableVector
         get() = entity.velocity.toReplay()
-    override val world: ReplayWorld
-        get() = replayPlatform.getWorldById(entity.instance!!.uniqueId)
+        set(value) {
+            entity.velocity = value.toMinestom()
+        }
+    override val world: ReplayWorld?
+        get() = entity.instance?.uniqueId?.let { replayPlatform.getWorldById(it) }
 
     override fun getEquipment(): Map<EntityEquipmentSlot, RecordableItemStack> {
         TODO("Not yet implemented")

@@ -1,4 +1,4 @@
-val minestomVersion = "66817eb9c4"
+val minestomVersion = "f7ec45802f"
 val cloudVersion = "58e8fd76f3"
 
 dependencies {

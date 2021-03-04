@@ -17,7 +17,7 @@ import java.util.*
 
 abstract class ReplayPlatform<W : ReplayWorld, P : ReplayUser, E : ReplayEntity> {
     abstract val worlds: IdHelperContainer<UUID, W>
-    abstract val entities: IdHelperContainer<UUID, ReplayEntity>
+    abstract val entities: IdHelperContainer<Int, ReplayEntity>
 
     abstract val name: String
     abstract val version: String

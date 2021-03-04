@@ -8,7 +8,7 @@ import java.util.function.Function
 class ReplayCommandManager(replayPlatform: MinestomReplayPlatform) : MinestomCommandManager<ReplayUser>(
     AsynchronousCommandExecutionCoordinator.newBuilder<ReplayUser>().withAsynchronousParsing().build(),
     Function {
-        replayPlatform.entities.getOrCompute(it.asPlayer().uuid) as ReplayUser
+        replayPlatform.entities.getOrCompute(it.asPlayer().entityId) as ReplayUser
     }, Function {
         (it as MinestomReplayUser).player
     }

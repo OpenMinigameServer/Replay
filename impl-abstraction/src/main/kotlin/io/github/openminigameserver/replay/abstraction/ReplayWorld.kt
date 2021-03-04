@@ -1,7 +1,7 @@
 package io.github.openminigameserver.replay.abstraction
 
-import io.github.openminigameserver.replay.AbstractReplaySession
 import io.github.openminigameserver.replay.recorder.ReplayRecorder
+import io.github.openminigameserver.replay.replayer.ReplaySession
 import java.util.*
 
 /**
@@ -9,7 +9,7 @@ import java.util.*
  */
 abstract class ReplayWorld {
     abstract val uuid: UUID
-    var replaySession: AbstractReplaySession? = null
+    var replaySession: ReplaySession? = null
     var recorder: ReplayRecorder? = null
 
     abstract val entities: Iterable<ReplayEntity>
