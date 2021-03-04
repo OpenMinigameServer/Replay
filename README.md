@@ -1,5 +1,5 @@
 # Replay
-A replay system for Minestom servers.
+A replay system for Bukkit and Minestom servers.
 
 ![YourKit](https://www.yourkit.com/images/yklogo.png)
 ------
