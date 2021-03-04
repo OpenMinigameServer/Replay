@@ -28,10 +28,10 @@ class ReplayExtension(var platform: ReplayPlatform<out ReplayWorld, out ReplayUs
     }
 
     private fun prepareCommandManager() {
-        platform.commandManager.parameterInjectorRegistry()
-            .registerInjector(ReplayManager::class.java) { _, _ ->
-                replayManager
-            }
+        platform.commandManager.parameterInjectorRegistry().apply {
+            registerInjector(ReplayExtension::class.java) { _, _ -> this@ReplayExtension }
+            registerInjector(ReplayManager::class.java) { _, _ -> replayManager }
+        }
 
         platform.commandManager.parserRegistry.registerSuggestionProvider("replay") { t, _ ->
             runBlocking { replayManager.storageSystem.getReplaysForPlayer(t.sender.uuid) }.map { it.toString() }
