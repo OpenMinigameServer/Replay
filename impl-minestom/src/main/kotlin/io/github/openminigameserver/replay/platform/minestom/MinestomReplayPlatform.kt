@@ -163,10 +163,9 @@ class MinestomReplayPlatform(private val replayExtension: MinestomReplayExtensio
     override val worlds: IdHelperContainer<UUID, MinestomReplayWorld> =
         IdHelperContainer { MinestomReplayWorld(MinecraftServer.getInstanceManager().getInstance(this)!!) }
 
-    override val entities: IdHelperContainer<Int, ReplayEntity>
-        get() = IdHelperContainer {
-            val entity: Entity = Entity.getEntity(this) ?: Player.getEntity(this)!!
-            if (entity is Player) MinestomReplayUser(this@MinestomReplayPlatform, entity) else
-                MinestomReplayEntity(this@MinestomReplayPlatform, entity)
-        }
+    override val entities: IdHelperContainer<Int, ReplayEntity> = IdHelperContainer {
+        val entity: Entity = Player.getEntity(this) ?: Entity.getEntity(this)!!
+        if (entity is Player) MinestomReplayUser(this@MinestomReplayPlatform, entity) else
+            MinestomReplayEntity(this@MinestomReplayPlatform, entity)
+    }
 }

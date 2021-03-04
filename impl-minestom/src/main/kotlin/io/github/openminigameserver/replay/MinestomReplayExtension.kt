@@ -16,6 +16,8 @@ class MinestomReplayExtension : Extension() {
         @JvmStatic
         lateinit var dataFolder: File
 
+        var hasLoadedPlatform = false
+
         lateinit var platform: MinestomReplayPlatform
 
         lateinit var extension: ReplayExtension
@@ -35,6 +37,7 @@ class MinestomReplayExtension : Extension() {
             "Replay"
         ).also { it.mkdirs() }
         platform = MinestomReplayPlatform(this)
+        hasLoadedPlatform = true
         extension = ReplayExtension(platform)
 
         extension.init()

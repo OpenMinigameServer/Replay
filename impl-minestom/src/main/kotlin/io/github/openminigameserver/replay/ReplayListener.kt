@@ -94,6 +94,7 @@ object ReplayListener {
         packet: ServerPacket,
         players: Collection<Player>
     ) {
+        if (!MinestomReplayExtension.hasLoadedPlatform) return
         when (packet) {
             is SoundEffectPacket -> {
                 handleRecording(players) { replay ->
