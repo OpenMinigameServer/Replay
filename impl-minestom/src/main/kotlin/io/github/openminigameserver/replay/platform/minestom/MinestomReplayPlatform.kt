@@ -10,6 +10,8 @@ import io.github.openminigameserver.replay.model.Replay
 import io.github.openminigameserver.replay.model.recordable.entity.data.BaseEntityData
 import io.github.openminigameserver.replay.platform.IdHelperContainer
 import io.github.openminigameserver.replay.platform.ReplayPlatform
+import io.github.openminigameserver.replay.platform.minestom.replayer.getPlayerInventoryCopy
+import io.github.openminigameserver.replay.platform.minestom.replayer.loadAllItems
 import io.github.openminigameserver.replay.replayer.ActionPlayerManager
 import io.github.openminigameserver.replay.replayer.IEntityManager
 import io.github.openminigameserver.replay.replayer.ReplayChunkLoader
@@ -28,6 +30,8 @@ import net.minestom.server.network.packet.server.play.TeamsPacket
 import net.minestom.server.scoreboard.Team
 import net.minestom.server.timer.Task
 import net.minestom.server.utils.time.TimeUnit
+import org.jglrxavpok.hephaistos.nbt.NBTCompound
+import org.jglrxavpok.hephaistos.nbt.NBTList
 import java.io.File
 import java.util.*
 
@@ -124,11 +128,12 @@ class MinestomReplayPlatform(private val replayExtension: MinestomReplayExtensio
     }
 
     override fun getPlayerInventoryCopy(player: MinestomReplayUser): Any {
-        return Any()
+        return getPlayerInventoryCopy(player.player)
     }
 
     override fun loadPlayerInventoryCopy(player: MinestomReplayUser, inventory: Any) {
-//        TODO("Not yet implemented")
+        @Suppress("UNCHECKED_CAST")
+        (inventory as? NBTList<NBTCompound>)?.let { loadAllItems(it, player.player.inventory) }
     }
 
     fun getPlayer(player: Player): ReplayUser {
@@ -151,8 +156,13 @@ class MinestomReplayPlatform(private val replayExtension: MinestomReplayExtensio
         } ?: Component.empty(), action, skin)
     }
 
+    fun getEntity(entity: Entity): ReplayEntity {
+        return entities.getOrCompute(entity.entityId)
+    }
+
     override val worlds: IdHelperContainer<UUID, MinestomReplayWorld> =
         IdHelperContainer { MinestomReplayWorld(MinecraftServer.getInstanceManager().getInstance(this)!!) }
+
     override val entities: IdHelperContainer<Int, ReplayEntity>
         get() = IdHelperContainer {
             val entity: Entity = Entity.getEntity(this) ?: Player.getEntity(this)!!

@@ -6,6 +6,8 @@ import io.github.openminigameserver.replay.abstraction.ReplayEntity
 import io.github.openminigameserver.replay.abstraction.ReplayUser
 import io.github.openminigameserver.replay.abstraction.ReplayWorld
 import io.github.openminigameserver.replay.commands.ReplayCommand
+import io.github.openminigameserver.replay.commands.StartRecordingCommand
+import io.github.openminigameserver.replay.commands.StopRecordingCommand
 import kotlinx.coroutines.runBlocking
 
 class ReplayExtension(var platform: ReplayPlatform<out ReplayWorld, out ReplayUser, out ReplayEntity>) {
@@ -18,7 +20,11 @@ class ReplayExtension(var platform: ReplayPlatform<out ReplayWorld, out ReplayUs
         platform.log("Replay by OpenMinigameServer version ${BuildInfo.version}.")
         prepareCommandManager()
 
-        platform.commandAnnotationParser.parse(ReplayCommand)
+        if (platform.settings.shouldRegisterCommands) {
+            platform.commandAnnotationParser.parse(ReplayCommand)
+            platform.commandAnnotationParser.parse(StartRecordingCommand)
+            platform.commandAnnotationParser.parse(StopRecordingCommand)
+        }
     }
 
     private fun prepareCommandManager() {

@@ -1,6 +1,8 @@
 package io.github.openminigameserver.replay.mixins;
 
+import io.github.openminigameserver.replay.MinestomReplayExtension;
 import io.github.openminigameserver.replay.extensions.MinestomInteropExtensionsKt;
+import io.github.openminigameserver.replay.platform.minestom.MinestomReplayPlatform;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.LivingEntity;
 import net.minestom.server.entity.Player;
@@ -22,7 +24,7 @@ public abstract class PlayerMixin extends LivingEntity {
         if (getInstance() != null) {
             var recorder = MinestomInteropExtensionsKt.getRecorder(getInstance());
             if (recorder != null) {
-                //TODO: recorder.notifyEntityEquipmentChange(this);
+                recorder.onEntityEquipmentChange(((MinestomReplayPlatform) MinestomReplayExtension.extension.getPlatform()).getPlayer((Player) (Object) this));
             }
         }
     }

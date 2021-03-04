@@ -13,6 +13,6 @@ class MinestomReplayWorld(val instance: Instance) : ReplayWorld() {
     override val entities: Iterable<ReplayEntity>
         get() = instance.entities.map { MinestomReplayExtension.platform.entities.getOrCompute(it.entityId) }
     override val chunks: Iterable<ReplayChunk>
-        get() = TODO("Not yet implemented")
+        get() = instance.chunks.map { MinestomReplayChunk(it) }
 
 }

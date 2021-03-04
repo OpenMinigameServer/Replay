@@ -5,7 +5,6 @@ import io.github.openminigameserver.replay.ReplayManager
 import io.github.openminigameserver.replay.abstraction.ReplayUser
 import io.github.openminigameserver.replay.recorder.RecorderOptions
 import io.github.openminigameserver.replay.recorder.ReplayRecorder
-import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.format.NamedTextColor
@@ -23,7 +22,7 @@ object StartRecordingCommand {
     }
 
     private fun startRecordingReplay(sender: ReplayUser, recordChunks: Boolean = false, replayManager: ReplayManager) {
-        sender.sendMessage(Component.text("Recording started.", NamedTextColor.GREEN))
+        sender.sendMessage(text("Recording started.", NamedTextColor.GREEN))
         sender.sendMessage(
             text("Click here to stop recording.").clickEvent(ClickEvent.runCommand("/stoprecording"))
         )

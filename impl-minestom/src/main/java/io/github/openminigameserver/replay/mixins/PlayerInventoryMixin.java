@@ -1,6 +1,8 @@
 package io.github.openminigameserver.replay.mixins;
 
+import io.github.openminigameserver.replay.MinestomReplayExtension;
 import io.github.openminigameserver.replay.extensions.MinestomInteropExtensionsKt;
+import io.github.openminigameserver.replay.platform.minestom.MinestomReplayPlatform;
 import net.minestom.server.entity.Player;
 import net.minestom.server.inventory.PlayerInventory;
 import org.spongepowered.asm.mixin.Final;
@@ -21,7 +23,7 @@ public class PlayerInventoryMixin {
         if (player.getInstance() != null) {
             var recorder = MinestomInteropExtensionsKt.getRecorder(player.getInstance());
             if (recorder != null) {
-//                TODO: recorder.notifyEntityEquipmentChange(player);
+                recorder.onEntityEquipmentChange(((MinestomReplayPlatform) MinestomReplayExtension.extension.getPlatform()).getPlayer((Player) (Object) this));
             }
         }
     }
