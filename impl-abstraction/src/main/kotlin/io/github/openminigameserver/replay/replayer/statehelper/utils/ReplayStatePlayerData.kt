@@ -1,35 +1,35 @@
 package io.github.openminigameserver.replay.replayer.statehelper.utils
 
-import net.minestom.server.entity.GameMode
-import net.minestom.server.entity.Player
-import org.jglrxavpok.hephaistos.nbt.NBTCompound
-import org.jglrxavpok.hephaistos.nbt.NBTList
+import io.github.openminigameserver.replay.abstraction.ReplayGameMode
+import io.github.openminigameserver.replay.abstraction.ReplayUser
+import io.github.openminigameserver.replay.platform.ReplayPlatform
+
 
 class ReplayStatePlayerData(
     private val isAllowFlying: Boolean,
     private val isFlying: Boolean,
-    private val gameMode: GameMode,
+    private val gameMode: ReplayGameMode,
     private val heldSlot: Byte,
     private val exp: Float,
-    private val inventory: NBTList<NBTCompound>
+    private val inventory: Any
 ) {
 
-    constructor(player: Player) : this(
+    constructor(replayPlatform: ReplayPlatform<*, ReplayUser, *>, player: ReplayUser) : this(
         player.isAllowFlying,
         player.isFlying,
         player.gameMode,
         player.heldSlot,
         player.exp,
-        getPlayerInventoryCopy(player)
+        replayPlatform.getPlayerInventoryCopy(player)
     )
 
-    fun apply(player: Player) {
+    fun apply(replayPlatform: ReplayPlatform<*, ReplayUser, *>, player: ReplayUser) {
         player.isAllowFlying = isAllowFlying
         player.isFlying = isFlying
         player.gameMode = gameMode
         player.setHeldItemSlot(heldSlot)
         player.exp = exp
-        loadAllItems(inventory, player.inventory)
+        replayPlatform.loadPlayerInventoryCopy(player, inventory)
     }
 
 }

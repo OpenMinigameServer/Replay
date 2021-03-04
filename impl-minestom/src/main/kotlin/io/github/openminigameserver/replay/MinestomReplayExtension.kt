@@ -36,6 +36,7 @@ class MinestomReplayExtension : Extension() {
     override fun initialize() {
         extension.init()
 
+        ReplayListener.platform = platform
         ReplayListener.registerListeners()
         logger.info("Initialized event listeners.")
 

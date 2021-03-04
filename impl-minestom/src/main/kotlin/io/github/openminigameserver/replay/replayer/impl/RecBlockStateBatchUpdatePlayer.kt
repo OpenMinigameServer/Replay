@@ -1,13 +1,13 @@
-package io.github.openminigameserver.replay.player.impl
+package io.github.openminigameserver.replay.replayer.impl
 
 import io.github.openminigameserver.replay.extensions.toMinestom
 import io.github.openminigameserver.replay.model.recordable.impl.RecBlockStateBatchUpdate
-import io.github.openminigameserver.replay.replayer.ActionPlayer
+import io.github.openminigameserver.replay.platform.minestom.replayer.MinestomActionPlayer
 import io.github.openminigameserver.replay.replayer.ReplaySession
 import net.minestom.server.entity.Player
 import net.minestom.server.instance.Instance
 
-object RecBlockStateBatchUpdatePlayer : ActionPlayer<RecBlockStateBatchUpdate> {
+object RecBlockStateBatchUpdatePlayer : MinestomActionPlayer<RecBlockStateBatchUpdate> {
     override fun play(
         action: RecBlockStateBatchUpdate,
         session: ReplaySession,

@@ -4,9 +4,10 @@ import io.github.openminigameserver.replay.extensions.*
 import io.github.openminigameserver.replay.helpers.ReplayPlayerEntity
 import io.github.openminigameserver.replay.model.Replay
 import io.github.openminigameserver.replay.model.recordable.impl.*
+import io.github.openminigameserver.replay.platform.minestom.MinestomReplayPlatform
+import io.github.openminigameserver.replay.platform.minestom.controlItemAction
 import io.github.openminigameserver.replay.recorder.ReplayRecorder
 import io.github.openminigameserver.replay.replayer.statehelper.ControlItemAction
-import io.github.openminigameserver.replay.replayer.statehelper.constants.controlItemAction
 import net.minestom.server.MinecraftServer
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.Player
@@ -22,9 +23,12 @@ import net.minestom.server.network.packet.server.play.*
 
 object ReplayListener {
 
-    private val playerDisconnectHandler: (event: PlayerDisconnectEvent) -> Unit = {
-        if (it.player !is FakePlayer && it.player !is ReplayPlayerEntity)
-            it.player.instance!!.replaySession?.removeViewer(it.player)
+    lateinit var platform: MinestomReplayPlatform
+    private val playerDisconnectHandler: (event: PlayerDisconnectEvent) -> Unit = event@{
+        if (it.player !is FakePlayer && it.player !is ReplayPlayerEntity) {
+            val replaySession = it.player.instance!!.replaySession ?: return@event
+            replaySession.removeViewer(platform.getPlayer(it.player))
+        }
     }
     private val viewerJoinedReplaySession: (event: AddEntityToInstanceEvent) -> Unit = event@{
         val player = it.entity as? Player ?: return@event
@@ -49,7 +53,7 @@ object ReplayListener {
         val action = it.itemStack.controlItemAction
         if (action != ControlItemAction.NONE) {
             runOnSeparateThread {
-                replaySession.playerStateHelper.handleItemAction(it.player, action)
+                replaySession.playerStateHelper.handleItemAction(platform.getPlayer(it.player), action)
             }
         }
     }
@@ -65,7 +69,10 @@ object ReplayListener {
         eventCallback@{ event: PlayerHandAnimationEvent ->
             val session = event.player.instance?.replaySession ?: return@eventCallback
 
-            session.playerStateHelper.handleItemSwing(event.player, event.player.getItemInHand(event.hand))
+            session.playerStateHelper.handleItemSwing(
+                platform.getPlayer(event.player),
+                platform.getItemStack(event.player.getItemInHand(event.hand))
+            )
         }
 
     fun registerListeners() {

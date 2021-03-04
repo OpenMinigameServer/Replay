@@ -2,10 +2,13 @@ package io.github.openminigameserver.replay.platform
 
 import io.github.openminigameserver.replay.BuildInfo
 import io.github.openminigameserver.replay.ReplayManager
+import io.github.openminigameserver.replay.abstraction.ReplayEntity
+import io.github.openminigameserver.replay.abstraction.ReplayUser
+import io.github.openminigameserver.replay.abstraction.ReplayWorld
 import io.github.openminigameserver.replay.commands.ReplayCommand
 import kotlinx.coroutines.runBlocking
 
-class ReplayExtension(var platform: ReplayPlatform) {
+class ReplayExtension(var platform: ReplayPlatform<out ReplayWorld, out ReplayUser, out ReplayEntity>) {
 
     val dataDir get() = platform.dataDir
 

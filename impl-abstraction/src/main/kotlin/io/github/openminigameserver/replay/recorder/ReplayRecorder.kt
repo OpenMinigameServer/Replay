@@ -4,6 +4,7 @@ import io.github.openminigameserver.replay.ReplayManager
 import io.github.openminigameserver.replay.TickTime
 import io.github.openminigameserver.replay.TimeUnit
 import io.github.openminigameserver.replay.abstraction.ReplayEntity
+import io.github.openminigameserver.replay.abstraction.ReplayUser
 import io.github.openminigameserver.replay.abstraction.ReplayWorld
 import io.github.openminigameserver.replay.model.recordable.RecordablePosition
 import io.github.openminigameserver.replay.model.recordable.RecordablePositionAndVector
@@ -11,6 +12,7 @@ import io.github.openminigameserver.replay.model.recordable.RecordedChunk
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.model.recordable.impl.*
 import io.github.openminigameserver.replay.platform.ReplayExtension
+import io.github.openminigameserver.replay.platform.ReplayPlatform
 import io.github.openminigameserver.replay.recorder.PositionRecordType.GROUP_ALL
 import io.github.openminigameserver.replay.recorder.PositionRecordType.SEPARATE_ALL
 import java.util.*
@@ -93,7 +95,9 @@ class ReplayRecorder(
         instance.entities.forEach { entity ->
             //Save all entities
             replay.apply {
-                entities[entity.id] = entity.toReplay(replayExtension.platform)
+                @Suppress("UNCHECKED_CAST")
+                entities[entity.id] =
+                    entity.toReplay(replayExtension.platform as ReplayPlatform<ReplayWorld, ReplayUser, ReplayEntity>)
             }
         }
         isRecording = true

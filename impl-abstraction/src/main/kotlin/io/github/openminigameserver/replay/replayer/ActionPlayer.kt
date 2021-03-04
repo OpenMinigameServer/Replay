@@ -7,4 +7,3 @@ import io.github.openminigameserver.replay.model.recordable.RecordableAction
 interface ActionPlayer<T : RecordableAction, W : ReplayWorld, P : ReplayUser> {
     fun play(action: T, session: ReplaySession, instance: W, viewers: List<P>)
 }
-

@@ -3,6 +3,7 @@ package io.github.openminigameserver.replay.replayer.statehelper
 import io.github.openminigameserver.replay.TickTime
 import io.github.openminigameserver.replay.TimeUnit
 import io.github.openminigameserver.replay.abstraction.ReplayActionItemStack
+import io.github.openminigameserver.replay.abstraction.ReplayGameMode
 import io.github.openminigameserver.replay.abstraction.ReplayUser
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
 import io.github.openminigameserver.replay.replayer.ReplaySession
@@ -96,14 +97,14 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
 
     private val oldData = mutableMapOf<UUID, ReplayStatePlayerData>()
     fun removeViewer(player: ReplayUser) {
-        oldData[player.uuid]?.apply(player)
+        oldData[player.uuid]?.apply(replayPlatform, player)
     }
 
     private fun initializePlayerControlItems() {
         session.viewers.forEach { p: ReplayUser ->
-            oldData[p.uuid] = ReplayStatePlayerData(p)
+            oldData[p.uuid] = ReplayStatePlayerData(replayPlatform, p)
             p.clearInventory()
-            p.gameMode = GameMode.ADVENTURE
+            p.gameMode = ReplayGameMode.ADVENTURE
             p.isAllowFlying = true
             p.isFlying = true
         }
@@ -116,22 +117,22 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
     }
 
     private fun updateItems(it: ReplayUser) {
-        it.inventory.setItemStack(
+        it.setItemStack(
             SLOT_DECREASE_SPEED,
             getItemStackOrAirIfReplayEnded(PlayerHeadsItems.getDecreaseSpeedItem())
         )
-        it.inventory.setItemStack(
+        it.setItemStack(
             SLOT_STEP_BACKWARDS,
             getItemStackOrAirIfReplayEnded(PlayerHeadsItems.getStepBackwardsItem(session.currentStepDuration))
         )
 
-        it.inventory.setItemStack(SLOT_PLAY_PAUSE, PlayerHeadsItems.getPlayPauseItem(session.paused, session.hasEnded))
+        it.setItemStack(SLOT_PLAY_PAUSE, PlayerHeadsItems.getPlayPauseItem(session.paused, session.hasEnded))
 
-        it.inventory.setItemStack(
+        it.setItemStack(
             SLOT_STEP_FORWARD,
             getItemStackOrAirIfReplayEnded(PlayerHeadsItems.getStepForwardItem(session.currentStepDuration))
         )
-        it.inventory.setItemStack(
+        it.setItemStack(
             SLOT_INCREASE_SPEED,
             getItemStackOrAirIfReplayEnded(PlayerHeadsItems.getIncreaseSpeedItem())
         )
@@ -143,7 +144,6 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
     val skipSpeeds = arrayOf(1, 5, 10, 30, 60)
     private val speeds = arrayOf(0.25, 0.5, 1.0, 2.0, 4.0)
     fun handleItemAction(player: ReplayUser, action: ControlItemAction) {
-
         when (action) {
             ControlItemAction.COOL_DOWN -> {
                 val previousSpeed = speeds[(speeds.indexOf(session.speed) - 1).coerceAtLeast(0)]
@@ -222,7 +222,7 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
     }
 
     fun handleItemSwing(player: ReplayUser, itemStack: ReplayActionItemStack) {
-        val action = itemStack.controlItemAction.takeUnless { it == ControlItemAction.NONE }
+        val action = itemStack.action.takeUnless { it == ControlItemAction.NONE }
         if (action == ControlItemAction.STEP_BACKWARDS || action == ControlItemAction.STEP_FORWARD) {
             val duration = session.currentStepDuration.inSeconds.roundToInt()
             val currentSkipIndex = skipSpeeds.indexOf(duration).coerceAtLeast(0)

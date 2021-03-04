@@ -1,4 +1,4 @@
-package io.github.openminigameserver.replay.player
+package io.github.openminigameserver.replay.replayer
 
 import com.google.common.collect.HashBasedTable
 import io.github.openminigameserver.replay.model.Replay

@@ -17,7 +17,7 @@ interface ReplayEntity {
     val world: ReplayWorld
     val instance: ReplayWorld get() = world
 
-    fun toReplay(replayPlatform: ReplayPlatform): RecordableEntity {
+    fun toReplay(replayPlatform: ReplayPlatform<ReplayWorld, ReplayUser, ReplayEntity>): RecordableEntity {
         return RecordableEntity(
             id,
             replayPlatform.getEntityType(this),

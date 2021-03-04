@@ -1,41 +1,45 @@
 package io.github.openminigameserver.replay.platform.minestom
 
-import io.github.openminigameserver.replay.abstraction.ReplayUser
-import io.github.openminigameserver.replay.abstraction.ReplayWorld
-import io.github.openminigameserver.replay.extensions.toReplay
-import io.github.openminigameserver.replay.model.recordable.RecordableItemStack
-import io.github.openminigameserver.replay.model.recordable.RecordablePosition
-import io.github.openminigameserver.replay.model.recordable.RecordableVector
-import io.github.openminigameserver.replay.model.recordable.entity.EntityEquipmentSlot
+import io.github.openminigameserver.replay.abstraction.*
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.platform.minestom.MinestomAudiences
 import net.minestom.server.entity.Player
-import java.util.*
 
 internal val audiences = MinestomAudiences.create()
 
-class MinestomReplayUser(val player: Player) : ReplayUser() {
+class MinestomReplayUser(val replayPlatform: MinestomReplayPlatform, val player: Player) : ReplayUser(),
+    ReplayEntity by MinestomReplayEntity(replayPlatform, player) {
+    override var exp: Float
+        get() = TODO("Not yet implemented")
+        set(value) {}
+    override val heldSlot: Byte
+        get() = TODO("Not yet implemented")
+    override var isFlying: Boolean
+        get() = TODO("Not yet implemented")
+        set(value) {}
+    override var isAllowFlying: Boolean
+        get() = TODO("Not yet implemented")
+        set(value) {}
+    override var gameMode: ReplayGameMode
+        get() = TODO("Not yet implemented")
+        set(value) {}
     override val audience: Audience = audiences.player(player)
-
     override val name: String
         get() = player.username
 
-    override val id: Int
-        get() = player.entityId
+    override fun setWorld(instance: ReplayWorld) {
+        (instance as? MinestomReplayWorld)?.instance?.let { player.setInstance(it) }
+    }
 
-    override val uuid: UUID
-        get() = player.uuid
+    override fun clearInventory() {
+        player.inventory.clear()
+    }
 
-    override val position: RecordablePosition
-        get() = player.position.toReplay()
+    override fun setHeldItemSlot(slot: Byte) {
+        player.setHeldItemSlot(slot)
+    }
 
-    override val velocity: RecordableVector
-        get() = player.velocity.toReplay()
-
-    override val world: ReplayWorld
-        get() = MinestomReplayWorld(player.instance!!)
-
-    override fun getEquipment(): Map<EntityEquipmentSlot, RecordableItemStack> {
+    override fun setItemStack(slot: Int, itemStack: ReplayActionItemStack) {
         TODO("Not yet implemented")
     }
 }
