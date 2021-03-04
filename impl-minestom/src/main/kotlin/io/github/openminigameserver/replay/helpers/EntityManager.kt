@@ -1,3 +1,4 @@
+/*
 package io.github.openminigameserver.replay.helpers
 
 import io.github.openminigameserver.replay.extensions.toMinestom
@@ -6,7 +7,9 @@ import io.github.openminigameserver.replay.model.recordable.RecordableVector
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntitiesPosition
 import io.github.openminigameserver.replay.model.recordable.impl.RecEntityMove
-import io.github.openminigameserver.replay.player.ReplaySession
+import io.github.openminigameserver.replay.platform.minestom.MinestomReplayUser
+import io.github.openminigameserver.replay.replayer.IEntityManager
+import io.github.openminigameserver.replay.replayer.ReplaySession
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.Player
 import net.minestom.server.registry.Registries
@@ -14,14 +17,14 @@ import net.minestom.server.utils.Position
 import net.minestom.server.utils.Vector
 import kotlin.time.Duration
 
-class EntityManager(var session: ReplaySession) {
-    val entities: Collection<RecordableEntity>
+class EntityManager(override var session: ReplaySession) : IEntityManager<MinestomReplayUser, TODO()> {
+    override val entities: Collection<RecordableEntity>
         get() = replayEntities.keys.mapNotNull { session.replay.getEntityById(it) }
 
     //Replay entity id
-    private val replayEntities = mutableMapOf<Int, Entity>()
+    override val replayEntities = mutableMapOf<Int, Entity>()
 
-    fun resetEntity(entity: RecordableEntity, startTime: Duration, targetReplayTime: Duration) {
+    override fun resetEntity(entity: RecordableEntity, startTime: Duration, targetReplayTime: Duration) {
         getNativeEntity(entity)?.let { nativeEntity ->
             nativeEntity.remove()
             nativeEntity.askSynchronization()
@@ -48,10 +51,10 @@ class EntityManager(var session: ReplaySession) {
         }
     }
 
-    fun spawnEntity(
+    override fun spawnEntity(
         entity: RecordableEntity,
         position: RecordablePosition,
-        velocity: RecordableVector = RecordableVector(0.0, 0.0, 0.0)
+        velocity: RecordableVector
     ) {
 
         replayEntities[entity.id]?.takeIf { !it.isRemoved }?.remove()
@@ -65,8 +68,8 @@ class EntityManager(var session: ReplaySession) {
             )
         replayEntities[entity.id] = minestomEntity
 
-        if (minestomEntity.instance != session.instance)
-            minestomEntity.setInstance(session.instance)
+        if (minestomEntity.instance != session.world)
+            minestomEntity.setInstance(session.world)
 
         refreshPosition(minestomEntity, spawnPosition)
         minestomEntity.velocity = velocity.toMinestom()
@@ -76,7 +79,7 @@ class EntityManager(var session: ReplaySession) {
         }
     }
 
-    private fun refreshPosition(
+    override fun refreshPosition(
         minestomEntity: Entity,
         position: Position
     ) {
@@ -86,21 +89,21 @@ class EntityManager(var session: ReplaySession) {
         minestomEntity.askSynchronization()
     }
 
-    fun getNativeEntity(entity: RecordableEntity): Entity? {
+    override fun getNativeEntity(entity: RecordableEntity): Entity? {
         return replayEntities[entity.id]
     }
 
-    fun removeEntity(entity: RecordableEntity) {
+    override fun removeEntity(entity: RecordableEntity) {
         getNativeEntity(entity)?.remove()
         replayEntities.remove(entity.id)
     }
 
-    fun removeNativeEntity(entity: Entity) {
+    override fun removeNativeEntity(entity: Entity) {
         entity.remove()
         replayEntities.remove(entity.entityId)
     }
 
-    fun removeAllEntities() {
+    override fun removeAllEntities() {
         replayEntities.forEach {
             if (it.value !is Player || it.value is ReplayPlayerEntity)
                 it.value.remove()
@@ -108,9 +111,9 @@ class EntityManager(var session: ReplaySession) {
         replayEntities.clear()
     }
 
-    fun removeEntityViewer(player: Player) {
+    override fun removeEntityViewer(player: Player) {
         replayEntities.forEach {
             it.value.removeViewer(player)
         }
     }
-}
+}*/

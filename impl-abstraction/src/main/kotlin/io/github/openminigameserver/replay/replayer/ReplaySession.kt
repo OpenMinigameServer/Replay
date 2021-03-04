@@ -1,31 +1,27 @@
-package io.github.openminigameserver.replay.player
+package io.github.openminigameserver.replay.replayer
 
 import io.github.openminigameserver.replay.AbstractReplaySession
 import io.github.openminigameserver.replay.TickTime
 import io.github.openminigameserver.replay.TimeUnit
-import io.github.openminigameserver.replay.extensions.replaySession
-import io.github.openminigameserver.replay.helpers.EntityManager
+import io.github.openminigameserver.replay.abstraction.ReplayUser
+import io.github.openminigameserver.replay.abstraction.ReplayWorld
 import io.github.openminigameserver.replay.model.Replay
 import io.github.openminigameserver.replay.model.recordable.RecordableAction
-import io.github.openminigameserver.replay.player.statehelper.ReplaySessionPlayerStateHelper
+import io.github.openminigameserver.replay.platform.ReplayPlatform
+import io.github.openminigameserver.replay.replayer.statehelper.ReplaySessionPlayerStateHelper
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import net.minestom.server.MinecraftServer
-import net.minestom.server.chat.ChatColor
-import net.minestom.server.chat.ColoredText
-import net.minestom.server.entity.Player
-import net.minestom.server.instance.Instance
-import net.minestom.server.network.packet.server.play.TeamsPacket
-import net.minestom.server.scoreboard.Team
+import net.kyori.adventure.text.Component
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import kotlin.time.Duration
 import kotlin.time.seconds
 
 class ReplaySession internal constructor(
-    internal val instance: Instance,
+    internal val replayPlatform: ReplayPlatform,
+    internal val world: ReplayWorld,
     override val replay: Replay,
-    val viewers: MutableList<Player>,
+    val viewers: MutableList<ReplayUser>,
     private val tickTime: TickTime = TickTime(1L, TimeUnit.TICK)
 ) : AbstractReplaySession() {
 
@@ -82,12 +78,6 @@ class ReplaySession internal constructor(
         playerStateHelper.updateReplayStateToViewers()
     }
 
-    private val viewerTeam: Team = MinecraftServer.getTeamManager().createBuilder("ReplayViewers")
-        .prefix(ColoredText.of(ChatColor.GRAY, "[Viewer] "))
-        .collisionRule(TeamsPacket.CollisionRule.NEVER)
-        .teamColor(ChatColor.GRAY)
-        .build()
-
     override fun init() {
         isInitialized = true
         viewers.forEach { p ->
@@ -103,37 +93,37 @@ class ReplaySession internal constructor(
     }
 
     private val oldViewerInstanceMap = mutableMapOf<UUID, UUID>()
-    private fun setupViewer(p: Player) {
-        viewerTeam.addMember(p.username)
-        if (p.instance != instance) {
-            oldViewerInstanceMap[p.uuid] = p.instance!!.uniqueId
-            p.setInstance(instance)
+    private fun setupViewer(p: ReplayUser) {
+        replayPlatform.addToViewerTeam(p)
+        if (p.instance != world) {
+            oldViewerInstanceMap[p.uuid] = p.instance.uuid
+            p.setWorld(world)
         }
     }
 
     override fun unInit() {
         isInitialized = false
         entityManager.removeAllEntities()
-        instance.replaySession = null
+        world.replaySession = null
         playerStateHelper.unInit()
         viewers.forEach { removeViewer(it) }
         if (replay.hasChunks) {
-            MinecraftServer.getInstanceManager().unregisterInstance(instance)
+            replayPlatform.unregisterWorld(world)
         }
     }
 
-    fun removeViewer(player: Player) {
+    fun removeViewer(player: ReplayUser) {
         try {
             entityManager.removeEntityViewer(player)
             playerStateHelper.removeViewer(player)
 
-            viewerTeam.removeMember(player.username)
+            replayPlatform.removeFromViewerTeam(player)
 
-            player.sendActionBarMessage(ColoredText.of(""))
+            player.sendActionBar(Component.empty())
 
             val oldInstance =
-                oldViewerInstanceMap[player.uuid]?.let { MinecraftServer.getInstanceManager().getInstance(it) }
-            oldInstance?.let { player.setInstance(oldInstance) }
+                oldViewerInstanceMap[player.uuid]?.let { replayPlatform.getWorldById(it) }
+            oldInstance?.let { player.setWorld(oldInstance) }
         } catch (e: Throwable) {
             e.printStackTrace()
         } finally {
@@ -212,10 +202,10 @@ class ReplaySession internal constructor(
         lastTickTime = currentTime
     }
 
-    val entityManager = EntityManager(this)
+    val entityManager = replayPlatform.getEntityManager(this)
     override fun playAction(action: RecordableAction) {
         try {
-            ActionPlayerManager.getActionPlayer(action).play(action, this, instance, viewers)
+            ActionPlayerManager.getActionPlayer(action).play(action, this, world, viewers)
         } catch (e: Throwable) {
             e.printStackTrace()
 

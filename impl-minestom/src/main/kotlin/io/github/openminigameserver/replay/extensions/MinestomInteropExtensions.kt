@@ -12,8 +12,8 @@ import io.github.openminigameserver.replay.model.recordable.entity.RecordableEnt
 import io.github.openminigameserver.replay.model.recordable.entity.data.BaseEntityData
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerSkinData
-import io.github.openminigameserver.replay.player.ReplaySession
 import io.github.openminigameserver.replay.recorder.ReplayRecorder
+import io.github.openminigameserver.replay.replayer.ReplaySession
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import net.minestom.server.entity.Entity

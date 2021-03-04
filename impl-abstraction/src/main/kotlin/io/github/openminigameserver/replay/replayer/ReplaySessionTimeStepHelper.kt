@@ -1,4 +1,4 @@
-package io.github.openminigameserver.replay.player
+package io.github.openminigameserver.replay.replayer
 
 import io.github.openminigameserver.replay.model.recordable.RecordableAction
 import io.github.openminigameserver.replay.model.recordable.reverse.Reversible

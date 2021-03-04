@@ -1,4 +1,4 @@
-package io.github.openminigameserver.replay.player.statehelper.utils
+package io.github.openminigameserver.replay.replayer.statehelper.utils
 
 import net.minestom.server.entity.GameMode
 import net.minestom.server.entity.Player

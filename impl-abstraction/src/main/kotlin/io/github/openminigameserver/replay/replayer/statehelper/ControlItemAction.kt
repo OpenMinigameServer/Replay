@@ -1,4 +1,4 @@
-package io.github.openminigameserver.replay.player.statehelper
+package io.github.openminigameserver.replay.replayer.statehelper
 
 enum class ControlItemAction {
     NONE,

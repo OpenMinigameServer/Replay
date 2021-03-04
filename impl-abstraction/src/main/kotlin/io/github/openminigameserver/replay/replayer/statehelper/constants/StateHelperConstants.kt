@@ -1,4 +1,4 @@
-package io.github.openminigameserver.replay.player.statehelper.constants
+package io.github.openminigameserver.replay.replayer.statehelper.constants
 
 const val SLOT_DECREASE_SPEED = 2
 const val SLOT_STEP_BACKWARDS = 3

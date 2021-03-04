@@ -1,57 +1,62 @@
-package io.github.openminigameserver.replay.player.statehelper
+package io.github.openminigameserver.replay.replayer.statehelper
 
+import io.github.openminigameserver.replay.TickTime
+import io.github.openminigameserver.replay.TimeUnit
+import io.github.openminigameserver.replay.abstraction.ReplayActionItemStack
+import io.github.openminigameserver.replay.abstraction.ReplayUser
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
-import io.github.openminigameserver.replay.player.ReplaySession
-import io.github.openminigameserver.replay.player.statehelper.constants.*
-import io.github.openminigameserver.replay.player.statehelper.utils.ReplayStatePlayerData
-import net.minestom.server.MinecraftServer
-import net.minestom.server.chat.ChatColor
-import net.minestom.server.chat.ColoredText
-import net.minestom.server.entity.GameMode
-import net.minestom.server.entity.Player
-import net.minestom.server.item.ItemStack
-import net.minestom.server.sound.Sound
-import net.minestom.server.sound.SoundCategory
-import net.minestom.server.timer.Task
-import net.minestom.server.utils.time.TimeUnit
+import io.github.openminigameserver.replay.replayer.ReplaySession
+import io.github.openminigameserver.replay.replayer.statehelper.constants.*
+import io.github.openminigameserver.replay.replayer.statehelper.utils.ReplayStatePlayerData
+import net.kyori.adventure.key.Key
+import net.kyori.adventure.sound.Sound
+import net.kyori.adventure.text.Component.empty
+import net.kyori.adventure.text.Component.text
+import net.kyori.adventure.text.format.NamedTextColor
 import java.util.*
 import kotlin.math.roundToInt
 import kotlin.time.Duration
 import kotlin.time.seconds
 
 class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
+    val replayPlatform = session.replayPlatform
 
-    val viewers: List<Player>
+    val viewers: List<ReplayUser>
         get() = session.viewers
 
-    val host: Player?
+    val host: ReplayUser?
         get() = viewers.firstOrNull()
 
     private var isInitialized = true
 
-    private var tickerTask: Task? = null
-    private fun getActionBarMessage() = if (!isInitialized) "" else buildString {
+    private var tickerTask: Any? = null
+    private fun getActionBarMessage() = if (!isInitialized) empty() else text {
         val spacing = " ".repeat(6)
         val (minutes, seconds) = formatTime(session.time)
         val (minutesFinal, secondsFinal) = formatTime(session.replay.duration)
 
-        append(if (session.paused) ChatColor.RED.toString() + "Paused" else ChatColor.BRIGHT_GREEN.toString() + "Playing")
-        append(spacing)
+        with(it) {
 
-        append("${ChatColor.YELLOW}$minutes:$seconds")
-        append(" / ")
-        append("${ChatColor.YELLOW}$minutesFinal:$secondsFinal")
 
-        append(spacing)
-        append(
-            "${ChatColor.GOLD}x${
-                (if (session.speed >= 0.5) "%.1f" else "%.2f").format(
-                    session.speed,
-                    Locale.ENGLISH
+            append((if (session.paused) text("Paused", NamedTextColor.RED) else text("Playing", NamedTextColor.GREEN)))
+            append(text(spacing))
+
+            append(text("$minutes:$seconds", NamedTextColor.YELLOW))
+            append(text(" / "))
+            append(text("$minutesFinal:$secondsFinal", NamedTextColor.YELLOW))
+
+            append(text(spacing))
+            append(text("x", NamedTextColor.GOLD))
+            append(
+                text(
+                    (if (session.speed >= 0.5) "%.1f" else "%.2f").format(
+                        session.speed,
+                        Locale.ENGLISH
+                    ), NamedTextColor.GOLD
                 )
-            }"
-        )
-        append(" ".repeat(2))
+            )
+            append(text(" ".repeat(2)))
+        }
     }
 
     private fun formatTime(time: Duration): Pair<String, String> {
@@ -71,9 +76,9 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
         host?.let { updateItems(it) }
     }
 
-    private fun updateViewersActionBar(viewers: MutableList<Player>) {
+    private fun updateViewersActionBar(viewers: MutableList<ReplayUser>) {
         viewers.forEach {
-            it.sendActionBarMessage(ColoredText.of(getActionBarMessage()))
+            it.sendActionBar(getActionBarMessage())
         }
     }
 
@@ -82,25 +87,22 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
         teleportViewers()
         playLoadedSoundToViewers()
         tickerTask =
-            MinecraftServer.getSchedulerManager()
-                .buildTask(tickerTaskRunnable)
-                .repeat(250, TimeUnit.MILLISECOND)
-                .schedule()
+            replayPlatform.registerSyncRepeatingTask(TickTime(250, TimeUnit.MILLISECOND)) { tickerTaskRunnable.run() }
     }
 
     private fun playLoadedSoundToViewers() {
-        viewers.forEach { it.playSound(Sound.ENTITY_PLAYER_LEVELUP, SoundCategory.PLAYERS, 1f, 1f) }
+        viewers.forEach { it.playSound(Sound.sound(Key.key("entity.player.levelup"), Sound.Source.PLAYER, 1f, 1f)) }
     }
 
     private val oldData = mutableMapOf<UUID, ReplayStatePlayerData>()
-    fun removeViewer(player: Player) {
+    fun removeViewer(player: ReplayUser) {
         oldData[player.uuid]?.apply(player)
     }
 
     private fun initializePlayerControlItems() {
-        session.viewers.forEach { p: Player ->
+        session.viewers.forEach { p: ReplayUser ->
             oldData[p.uuid] = ReplayStatePlayerData(p)
-            p.inventory.clear()
+            p.clearInventory()
             p.gameMode = GameMode.ADVENTURE
             p.isAllowFlying = true
             p.isFlying = true
@@ -113,7 +115,7 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
 
     }
 
-    private fun updateItems(it: Player) {
+    private fun updateItems(it: ReplayUser) {
         it.inventory.setItemStack(
             SLOT_DECREASE_SPEED,
             getItemStackOrAirIfReplayEnded(PlayerHeadsItems.getDecreaseSpeedItem())
@@ -135,12 +137,12 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
         )
     }
 
-    private fun getItemStackOrAirIfReplayEnded(itemStack: ItemStack) =
-        if (session.hasEnded) ItemStack.getAirItem() else itemStack
+    private fun getItemStackOrAirIfReplayEnded(itemStack: ReplayActionItemStack) =
+        if (session.hasEnded) ReplayActionItemStack.air else itemStack
 
     val skipSpeeds = arrayOf(1, 5, 10, 30, 60)
     private val speeds = arrayOf(0.25, 0.5, 1.0, 2.0, 4.0)
-    fun handleItemAction(player: Player, action: ControlItemAction) {
+    fun handleItemAction(player: ReplayUser, action: ControlItemAction) {
 
         when (action) {
             ControlItemAction.COOL_DOWN -> {
@@ -176,7 +178,7 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
             else -> TODO(action.name)
         }
 
-        player.playSound(Sound.BLOCK_LEVER_CLICK, SoundCategory.BLOCKS, 1f, 1f)
+        player.playSound(Sound.sound(Key.key("block.lever.click"), Sound.Source.BLOCK, 1f, 1f))
         updateReplayStateToViewers()
     }
 
@@ -198,7 +200,7 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
     private fun teleportViewers() {
         val entities = session.replay.entities.values
         val targetEntity =
-            entities.firstOrNull { (it.entityData as? PlayerEntityData)?.userName == session.viewers.first().username }
+            entities.firstOrNull { (it.entityData as? PlayerEntityData)?.userName == session.viewers.first().name }
                 ?: entities.firstOrNull()
         val targetEntityMinestom = targetEntity?.let { session.entityManager.getNativeEntity(it) }
 
@@ -208,7 +210,7 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
     }
 
     fun unInit() {
-        tickerTask?.cancel()
+        tickerTask?.let { replayPlatform.cancelTask(it) }
         tickerTask = null
         isInitialized = false
         updateViewersActionBar(session.viewers)
@@ -219,7 +221,7 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
         updateAllItems()
     }
 
-    fun handleItemSwing(player: Player, itemStack: ItemStack) {
+    fun handleItemSwing(player: ReplayUser, itemStack: ReplayActionItemStack) {
         val action = itemStack.controlItemAction.takeUnless { it == ControlItemAction.NONE }
         if (action == ControlItemAction.STEP_BACKWARDS || action == ControlItemAction.STEP_FORWARD) {
             val duration = session.currentStepDuration.inSeconds.roundToInt()

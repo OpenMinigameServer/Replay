@@ -4,9 +4,9 @@ import io.github.openminigameserver.replay.extensions.*
 import io.github.openminigameserver.replay.helpers.ReplayPlayerEntity
 import io.github.openminigameserver.replay.model.Replay
 import io.github.openminigameserver.replay.model.recordable.impl.*
-import io.github.openminigameserver.replay.player.statehelper.ControlItemAction
-import io.github.openminigameserver.replay.player.statehelper.constants.controlItemAction
 import io.github.openminigameserver.replay.recorder.ReplayRecorder
+import io.github.openminigameserver.replay.replayer.statehelper.ControlItemAction
+import io.github.openminigameserver.replay.replayer.statehelper.constants.controlItemAction
 import net.minestom.server.MinecraftServer
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.Player

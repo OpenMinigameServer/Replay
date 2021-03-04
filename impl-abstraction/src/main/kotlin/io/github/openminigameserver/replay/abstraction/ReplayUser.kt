@@ -13,4 +13,8 @@ abstract class ReplayUser : ForwardingAudience, ReplayEntity {
     override fun audiences(): Iterable<Audience> {
         return listOf(audience)
     }
+
+    abstract fun setWorld(instance: ReplayWorld)
+    abstract fun clearInventory()
+    abstract fun setHeldItemSlot(count: Byte)
 }

@@ -2,6 +2,7 @@ package io.github.openminigameserver.replay.player
 
 import io.github.openminigameserver.replay.model.recordable.RecordableAction
 import io.github.openminigameserver.replay.player.impl.*
+import io.github.openminigameserver.replay.replayer.ActionPlayer
 
 object ActionPlayerManager {
     @PublishedApi

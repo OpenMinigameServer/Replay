@@ -27,4 +27,5 @@ interface ReplayEntity {
     }
 
     fun getEquipment(): Map<EntityEquipmentSlot, RecordableItemStack>
+    fun teleport(position: RecordablePosition)
 }
