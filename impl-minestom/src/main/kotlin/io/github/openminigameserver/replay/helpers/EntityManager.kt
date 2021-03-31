@@ -65,12 +65,12 @@ class EntityManager(val platform: MinestomReplayPlatform, override var session: 
         return replayEntities[entity.id]
     }
 
-    override fun removeEntity(entity: RecordableEntity) {
+    override fun removeEntity(entity: RecordableEntity, destroy: Boolean) {
         getNativeEntity(entity)?.entity?.remove()
         replayEntities.remove(entity.id)
     }
 
-    override fun removeNativeEntity(entity: MinestomReplayEntity) {
+    override fun removeNativeEntity(entity: MinestomReplayEntity, destroy: Boolean) {
         entity.entity.remove()
         replayEntities.remove(entity.id)
     }

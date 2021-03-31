@@ -6,15 +6,20 @@ import io.github.openminigameserver.replay.model.recordable.entity.RecordableEnt
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
 import io.github.openminigameserver.replay.replayer.IEntityManager
 import io.github.openminigameserver.replay.replayer.ReplaySession
+import io.github.openminigameserver.replay.runSync
 import io.github.openminigameserver.replay.toBukkit
 import net.citizensnpcs.api.CitizensAPI
 import net.citizensnpcs.api.npc.MemoryNPCDataStore
+import net.citizensnpcs.npc.ai.NPCHolder
+import net.citizensnpcs.trait.Gravity
+import net.citizensnpcs.trait.SkinTrait
+import net.citizensnpcs.util.NMS
 import org.bukkit.NamespacedKey
 import org.bukkit.Registry
 import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
 import org.bukkit.event.player.PlayerTeleportEvent
-import kotlin.time.Duration
+import java.util.*
 
 class BukkitEntityManager(val platform: BukkitReplayPlatform, override var session: ReplaySession) :
     IEntityManager<BukkitReplayUser, BukkitReplayEntity> {
@@ -32,17 +37,37 @@ class BukkitEntityManager(val platform: BukkitReplayPlatform, override var sessi
     }
 
     override fun spawnEntity(entity: RecordableEntity, position: RecordablePosition, velocity: RecordableVector) {
-        val type = NamespacedKey.fromString(entity.type)?.let { Registry.ENTITY_TYPE.get(it) } ?: TODO(entity.type)
-        val entityData = entity.entityData
-        if (type == EntityType.PLAYER && entityData is PlayerEntityData) {
-            val npc = npcRegistry.createNPC(type, (entityData.userName + "§r"))
-            npc.spawn(position.toBukkit(world))
-            saveReplayEntity(entity, npc.entity)
-            return
-        }
-        entityData ?: return
+        runSync {
+            val type = NamespacedKey.fromString(entity.type)?.let { Registry.ENTITY_TYPE.get(it) } ?: TODO(entity.type)
+            val entityData = entity.entityData
+            if (type == EntityType.PLAYER && entityData is PlayerEntityData) {
+                val nativeEntity = getNativeEntity(entity)
+                val npc = nativeEntity?.takeIf { it.entity is NPCHolder }?.let { (it.entity as NPCHolder).npc }
+                    ?: npcRegistry.createNPC(type, (entityData.userName + "§r"))
 
-        TODO("Entities $type $entityData")
+                npc.getOrAddTrait(Gravity::class.java).gravitate(true)
+                npc.spawn(position.toBukkit(world))
+                if (nativeEntity != null) {
+                    refreshPosition(nativeEntity, position)
+                }
+
+                val skinData = entityData.skin
+                if (skinData != null) {
+                    val skinTrait = npc.getOrAddTrait(SkinTrait::class.java)
+                    skinTrait.setSkinPersistent(
+                        entityData.userName,
+                        Base64.getEncoder().encodeToString(skinData.signature),
+                        Base64.getEncoder().encodeToString(skinData.textures)
+                    )
+                }
+
+                saveReplayEntity(entity, npc.entity)
+                return@runSync
+            }
+            entityData ?: return@runSync
+
+            TODO("Entities $type $entityData")
+        }
     }
 
 
@@ -50,17 +75,36 @@ class BukkitEntityManager(val platform: BukkitReplayPlatform, override var sessi
         replayEntities[rec.id] = platform.entities.getOrCompute(entity.entityId) as BukkitReplayEntity
     }
 
-    override fun refreshPosition(minestomEntity: BukkitReplayEntity, position: RecordablePosition) {
-        minestomEntity.entity.teleport(position.toBukkit(world), PlayerTeleportEvent.TeleportCause.COMMAND)
+    override fun refreshPosition(entity: BukkitReplayEntity, position: RecordablePosition) {
+        runSync {
+            val toBukkit = position.toBukkit(world)
+            val nativeEntity = entity.entity
+            if (nativeEntity is NPCHolder) {
+                nativeEntity.npc.teleport(toBukkit, PlayerTeleportEvent.TeleportCause.COMMAND)
+                NMS.look(nativeEntity, toBukkit.yaw, toBukkit.pitch)
+            } else {
+                nativeEntity.teleport(toBukkit, PlayerTeleportEvent.TeleportCause.COMMAND)
+            }
+        }
     }
 
-    override fun removeNativeEntity(entity: BukkitReplayEntity) {
-        entity.entity.remove()
+    override fun removeNativeEntity(entity: BukkitReplayEntity, destroy: Boolean) = runSync {
+        val native = entity.entity
+        if (native is NPCHolder) {
+            val npc = native.npc
+            if (destroy) {
+                npc.destroy()
+            } else {
+                npc.despawn()
+            }
+        } else {
+            native.remove()
+        }
         replayEntities.remove(entity.id)
     }
 
-    override fun removeEntity(entity: RecordableEntity) {
-        replayEntities[entity.id]?.let { removeNativeEntity(it) }
+    override fun removeEntity(entity: RecordableEntity, destroy: Boolean) {
+        replayEntities[entity.id]?.let { removeNativeEntity(it, destroy) }
     }
 
     override fun removeEntityViewer(player: BukkitReplayUser) {
@@ -69,9 +113,5 @@ class BukkitEntityManager(val platform: BukkitReplayPlatform, override var sessi
 
     override fun removeAllEntities() {
         entities.forEach { removeEntity(it) }
-    }
-
-    override fun resetEntity(entity: RecordableEntity, startTime: Duration, targetReplayTime: Duration) {
-        TODO("Not yet implemented")
     }
 }

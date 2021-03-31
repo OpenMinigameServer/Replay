@@ -29,7 +29,8 @@ class BukkitReplayEntity(val entity: Entity) : ReplayEntity {
         get() = ReplayPlugin.platform.getWorldById(entity.world.uid)
 
     override fun getEquipment(): Map<EntityEquipmentSlot, RecordableItemStack> {
-        TODO("Not yet implemented")
+        //TODO("Not yet implemented")
+        return emptyMap()
     }
 
     override fun teleport(position: RecordablePosition) {

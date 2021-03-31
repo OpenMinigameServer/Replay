@@ -152,7 +152,9 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
     fun handleItemAction(player: ReplayUser, action: ControlItemAction) {
         when (action) {
             ControlItemAction.COOL_DOWN -> {
-                val previousSpeed = speeds[(speeds.indexOf(session.speed) - 1).coerceAtLeast(0)]
+                var previousSpeed = speeds[(speeds.indexOf(session.speed) - 1).coerceAtLeast(0)]
+                if (session.speed > 1.0)
+                    previousSpeed = 1.0
                 session.speed = previousSpeed
                 session.tick(true)
             }
@@ -170,7 +172,9 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
                 session.paused = false
             }
             ControlItemAction.SPEED_UP -> {
-                val nextSpeed = speeds[(speeds.indexOf(session.speed) + 1).coerceAtMost(speeds.size - 1)]
+                var nextSpeed = speeds[(speeds.indexOf(session.speed) + 1).coerceAtMost(speeds.size - 1)]
+                if (session.speed < 1.0)
+                    nextSpeed = 1.0
                 session.speed = nextSpeed
                 session.tick(true)
             }
@@ -179,7 +183,8 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
             }
             ControlItemAction.STEP_FORWARD -> {
                 doStep(true)
-
+            }
+            ControlItemAction.NONE -> {
             }
             else -> TODO(action.name)
         }
@@ -241,7 +246,6 @@ class ReplaySessionPlayerStateHelper(val session: ReplaySession) {
             }
 
             session.currentStepDuration = skipSpeeds[nextIndex].seconds
-
         }
     }
 

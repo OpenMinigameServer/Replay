@@ -18,7 +18,7 @@ interface IEntityManager<P : ReplayUser, E : ReplayEntity> {
 
     fun resetEntity(entity: RecordableEntity, startTime: Duration, targetReplayTime: Duration) {
         getNativeEntity(entity)?.let { e ->
-            removeEntity(entity)
+            removeEntity(entity, false)
 
             //Check if Entity (has been spawned at start) or (has been spawned somewhere before and has not been removed before)
             val shouldSpawn = true
@@ -49,13 +49,13 @@ interface IEntityManager<P : ReplayUser, E : ReplayEntity> {
     )
 
     fun refreshPosition(
-        minestomEntity: E,
+        entity: E,
         position: RecordablePosition
     )
 
     fun getNativeEntity(entity: RecordableEntity): E?
-    fun removeEntity(entity: RecordableEntity)
-    fun removeNativeEntity(entity: E)
+    fun removeEntity(entity: RecordableEntity, destroy: Boolean = true)
+    fun removeNativeEntity(entity: E, destroy: Boolean)
     fun removeAllEntities()
     fun removeEntityViewer(player: P)
 }

@@ -11,11 +11,13 @@ import io.github.openminigameserver.replay.abstraction.ReplayUser
 import io.github.openminigameserver.replay.abstraction.ReplayWorld
 import io.github.openminigameserver.replay.model.Replay
 import io.github.openminigameserver.replay.model.recordable.entity.data.BaseEntityData
+import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
 import io.github.openminigameserver.replay.platform.IdHelperContainer
 import io.github.openminigameserver.replay.platform.ReplayPlatform
 import io.github.openminigameserver.replay.replayer.ActionPlayerManager
 import io.github.openminigameserver.replay.replayer.IEntityManager
 import io.github.openminigameserver.replay.replayer.ReplaySession
+import io.github.openminigameserver.replay.toReplay
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
@@ -26,11 +28,16 @@ import java.io.File
 import java.util.*
 
 class BukkitReplayPlatform : ReplayPlatform<BukkitReplayWorld, BukkitReplayUser, BukkitReplayEntity>() {
+
+    init {
+        Bukkit.getPluginManager().registerEvents(ReplayListener, ReplayPlugin.instance)
+    }
+
     override val worlds: IdHelperContainer<UUID, BukkitReplayWorld> =
         IdHelperContainer { BukkitReplayWorld(Bukkit.getWorld(this)!!) }
     override val entities: IdHelperContainer<Int, ReplayEntity> = IdHelperContainer {
         val entity = Bukkit.getWorlds().flatMap { it.entities }.find { it.entityId == this }!!
-        if (entity is Player)
+        if (entity is Player && !entity.hasMetadata("NPC"))
             BukkitReplayUser(entity)
         else
             BukkitReplayEntity(entity)
@@ -146,6 +153,15 @@ class BukkitReplayPlatform : ReplayPlatform<BukkitReplayWorld, BukkitReplayUser,
         BukkitActionPlayerManager(this)
 
     override fun getEntityData(replayEntity: BukkitReplayEntity): BaseEntityData? {
+        val native = replayEntity.entity
+        if (native is Player) {
+            return PlayerEntityData(
+                native.name,
+                native.playerProfile.toReplay(),
+                ByteArray(0),
+                replayEntity.getEquipment()
+            )
+        }
         return null
     }
 
