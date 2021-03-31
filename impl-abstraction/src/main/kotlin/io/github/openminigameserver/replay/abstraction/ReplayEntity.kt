@@ -13,7 +13,7 @@ interface ReplayEntity {
     val id: Int
     val uuid: UUID
     val position: RecordablePosition
-    val velocity: RecordableVector
+    var velocity: RecordableVector
     val world: ReplayWorld?
     val instance: ReplayWorld? get() = world
 

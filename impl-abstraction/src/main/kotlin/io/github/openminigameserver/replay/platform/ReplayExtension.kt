@@ -1,6 +1,5 @@
 package io.github.openminigameserver.replay.platform
 
-import io.github.openminigameserver.replay.BuildInfo
 import io.github.openminigameserver.replay.ReplayManager
 import io.github.openminigameserver.replay.abstraction.ReplayEntity
 import io.github.openminigameserver.replay.abstraction.ReplayUser
@@ -17,7 +16,7 @@ class ReplayExtension(var platform: ReplayPlatform<out ReplayWorld, out ReplayUs
     val replayManager = ReplayManager(this)
 
     fun init() {
-        platform.log("Replay by OpenMinigameServer version ${BuildInfo.version}.")
+        platform.log("Replay by OpenMinigameServer version ${io.github.openminigameserver.replay.BuildInfo.version}.")
         prepareCommandManager()
 
         if (platform.settings.shouldRegisterCommands) {

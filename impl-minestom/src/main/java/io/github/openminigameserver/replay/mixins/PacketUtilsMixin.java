@@ -1,6 +1,7 @@
 package io.github.openminigameserver.replay.mixins;
 
 import io.github.openminigameserver.replay.ReplayListener;
+import java.util.Collection;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.packet.server.ServerPacket;
 import net.minestom.server.utils.PacketUtils;
@@ -9,8 +10,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Collection;
 
 @Mixin(PacketUtils.class)
 public class PacketUtilsMixin {

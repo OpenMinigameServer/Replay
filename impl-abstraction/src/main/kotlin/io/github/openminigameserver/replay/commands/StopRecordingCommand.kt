@@ -6,6 +6,7 @@ import io.github.openminigameserver.replay.platform.ReplayExtension
 import io.github.openminigameserver.replay.runOnSeparateThread
 import net.kyori.adventure.text.Component.newline
 import net.kyori.adventure.text.Component.text
+import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.format.NamedTextColor.*
 
 object StopRecordingCommand {
@@ -22,10 +23,10 @@ object StopRecordingCommand {
         sender.sendMessage(text("Recording stopped.", GREEN))
 
         runOnSeparateThread {
-            extension.replayManager.storageSystem.saveReplay(recorder.replay)
+            val replay = recorder.replay
+            extension.replayManager.storageSystem.saveReplay(replay)
             val message = text {
-
-                recorder.replay.actions.groupBy { it.javaClass.simpleName }
+                replay.actions.groupBy { it.javaClass.simpleName }
                     .forEach { actions ->
                         it.append(text("${actions.key}: ${actions.value.count()}", GOLD)).append(
                             newline()
@@ -33,7 +34,9 @@ object StopRecordingCommand {
                     }
             }
             sender.sendMessage(
-                text("Your replay has been created! Click here to play it!", GOLD).hoverEvent(message)
+                text("Your replay has been created! Click here to play it!", GOLD)
+                    .clickEvent(ClickEvent.runCommand("/replay play ${replay.id}"))
+                    .hoverEvent(message)
             )
         }
     }

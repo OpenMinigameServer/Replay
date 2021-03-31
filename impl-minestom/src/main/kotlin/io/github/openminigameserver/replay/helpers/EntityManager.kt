@@ -5,8 +5,6 @@ import io.github.openminigameserver.replay.extensions.toReplay
 import io.github.openminigameserver.replay.model.recordable.RecordablePosition
 import io.github.openminigameserver.replay.model.recordable.RecordableVector
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
-import io.github.openminigameserver.replay.model.recordable.impl.RecEntitiesPosition
-import io.github.openminigameserver.replay.model.recordable.impl.RecEntityMove
 import io.github.openminigameserver.replay.platform.minestom.MinestomReplayEntity
 import io.github.openminigameserver.replay.platform.minestom.MinestomReplayPlatform
 import io.github.openminigameserver.replay.platform.minestom.MinestomReplayUser
@@ -16,7 +14,6 @@ import io.github.openminigameserver.replay.replayer.ReplaySession
 import net.minestom.server.entity.Player
 import net.minestom.server.registry.Registries
 import net.minestom.server.utils.Vector
-import kotlin.time.Duration
 
 class EntityManager(val platform: MinestomReplayPlatform, override var session: ReplaySession) :
     IEntityManager<MinestomReplayUser, MinestomReplayEntity> {
@@ -25,34 +22,6 @@ class EntityManager(val platform: MinestomReplayPlatform, override var session: 
 
     //Replay entity id
     override val replayEntities = mutableMapOf<Int, MinestomReplayEntity>()
-
-    override fun resetEntity(entity: RecordableEntity, startTime: Duration, targetReplayTime: Duration) {
-        getNativeEntity(entity)?.let { e ->
-            val nativeEntity = e.entity
-            nativeEntity.remove()
-            nativeEntity.askSynchronization()
-
-            //Check if Entity (has been spawned at start) or (has been spawned somewhere before and has not been removed before)
-            val shouldSpawn = true
-
-            //Find actual position
-            var finalPos = entity.spawnPosition?.position
-            session.findActionsForEntity<RecEntityMove>(startTime, entity, targetReplayTime)
-                ?.let { finalPos = it.data.position }
-            session.findLastAction<RecEntitiesPosition>(
-                startTime,
-                targetReplayTime
-            ) { it.positions.containsKey(entity) }
-                ?.let { finalPos = it.positions[entity]!!.position }
-
-            nativeEntity.velocity = Vector(0.0, 0.0, 0.0)
-            finalPos?.let { previousLoc ->
-                if (shouldSpawn) {
-                    this.spawnEntity(entity, previousLoc)
-                }
-            }
-        }
-    }
 
     override fun spawnEntity(
         entity: RecordableEntity,

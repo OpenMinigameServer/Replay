@@ -8,8 +8,8 @@ repositories {
 dependencies {
     api(project(":model"))
 
-    implementation("cloud.commandframework:cloud-core:1.4.0")
-    implementation("cloud.commandframework:cloud-annotations:1.4.0")
+    api("cloud.commandframework:cloud-core:1.4.0")
+    api("cloud.commandframework:cloud-annotations:1.4.0")
 
     implementation("net.kyori:adventure-api:4.4.0")
 }

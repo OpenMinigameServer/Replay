@@ -60,6 +60,8 @@ allprojects.forEach {
 
     if (it.tasks.findByName("install") != null)
         it.tasks.replace("install").dependsOn("publishToMavenLocal")
+
+    it.tasks.findByName("assemble")?.dependsOn("shadowJar")
 }
 
 dependencies {
