@@ -1,9 +1,16 @@
 package io.github.openminigameserver.replay.platform.bukkit
 
+import com.comphenix.protocol.wrappers.AdventureComponentConverter
+import com.comphenix.protocol.wrappers.EnumWrappers
+import com.comphenix.protocol.wrappers.PlayerInfoData
+import com.comphenix.protocol.wrappers.WrappedGameProfile
+import io.github.openminigameserver.replay.PlayerNameSplittingHelper
+import io.github.openminigameserver.replay.ReplayPlugin
 import io.github.openminigameserver.replay.model.recordable.RecordablePosition
 import io.github.openminigameserver.replay.model.recordable.RecordableVector
 import io.github.openminigameserver.replay.model.recordable.entity.RecordableEntity
 import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
+import io.github.openminigameserver.replay.platform.bukkit.packets.WrapperPlayServerPlayerInfo
 import io.github.openminigameserver.replay.replayer.IEntityManager
 import io.github.openminigameserver.replay.replayer.ReplaySession
 import io.github.openminigameserver.replay.runSync
@@ -11,13 +18,17 @@ import io.github.openminigameserver.replay.toBukkit
 import net.citizensnpcs.api.CitizensAPI
 import net.citizensnpcs.api.npc.MemoryNPCDataStore
 import net.citizensnpcs.npc.ai.NPCHolder
+import net.citizensnpcs.npc.skin.SkinnableEntity
 import net.citizensnpcs.trait.Gravity
 import net.citizensnpcs.trait.SkinTrait
 import net.citizensnpcs.util.NMS
+import net.kyori.adventure.text.Component.text
+import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.Registry
 import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
+import org.bukkit.entity.Player
 import org.bukkit.event.player.PlayerTeleportEvent
 import java.util.*
 
@@ -42,11 +53,20 @@ class BukkitEntityManager(val platform: BukkitReplayPlatform, override var sessi
             val entityData = entity.entityData
             if (type == EntityType.PLAYER && entityData is PlayerEntityData) {
                 val nativeEntity = getNativeEntity(entity)
+                val name = PlayerNameSplittingHelper.splitName(entityData.userName)
                 val npc = nativeEntity?.takeIf { it.entity is NPCHolder }?.let { (it.entity as NPCHolder).npc }
-                    ?: npcRegistry.createNPC(type, (entityData.userName + "§r"))
+                    ?: npcRegistry.createNPC(type, (name.name))
 
                 npc.getOrAddTrait(Gravity::class.java).gravitate(true)
+                npc.data().set("removefromtablist", false)
                 npc.spawn(position.toBukkit(world))
+
+                //Add NPC to tablist
+                val npcEntity = npc.entity
+                if (npcEntity is SkinnableEntity) {
+                    sendNpcTabEntryAction(npcEntity as Player, EnumWrappers.PlayerInfoAction.ADD_PLAYER)
+                }
+
                 if (nativeEntity != null) {
                     refreshPosition(nativeEntity, position)
                 }
@@ -61,7 +81,8 @@ class BukkitEntityManager(val platform: BukkitReplayPlatform, override var sessi
                     )
                 }
 
-                saveReplayEntity(entity, npc.entity)
+                saveReplayEntity(entity, npcEntity)
+                platform.setSplitPlayerName(session, getNativeEntity(entity)!!, name.rest)
                 return@runSync
             }
             entityData ?: return@runSync
@@ -92,15 +113,42 @@ class BukkitEntityManager(val platform: BukkitReplayPlatform, override var sessi
         val native = entity.entity
         if (native is NPCHolder) {
             val npc = native.npc
+
             if (destroy) {
                 npc.destroy()
             } else {
                 npc.despawn()
             }
+
+            if (native is Player) {
+                //Remove NPC from tablist
+                sendNpcTabEntryAction(npc.entity as Player, EnumWrappers.PlayerInfoAction.REMOVE_PLAYER)
+            }
         } else {
             native.remove()
         }
         replayEntities.remove(entity.id)
+    }
+
+    private fun sendNpcTabEntryAction(
+        player: Player,
+        action: EnumWrappers.PlayerInfoAction
+    ) {
+        Bukkit.getScheduler().runTaskLater(ReplayPlugin.instance, Runnable {
+            WrapperPlayServerPlayerInfo().apply {
+                this.action = action
+                this.data = mutableListOf(
+                    PlayerInfoData(
+                        WrappedGameProfile.fromPlayer(player),
+                        0,
+                        EnumWrappers.NativeGameMode.SURVIVAL,
+                        if (action == EnumWrappers.PlayerInfoAction.REMOVE_PLAYER) AdventureComponentConverter.fromComponent(
+                            text(ReplayListener.removeNpcTagName)
+                        ) else null
+                    )
+                )
+            }.broadcastPacket()
+        }, 1L)
     }
 
     override fun removeEntity(entity: RecordableEntity, destroy: Boolean) {

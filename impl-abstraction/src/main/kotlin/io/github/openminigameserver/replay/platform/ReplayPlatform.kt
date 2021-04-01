@@ -58,4 +58,6 @@ abstract class ReplayPlatform<W : ReplayWorld, P : ReplayUser, E : ReplayEntity>
     abstract fun getPlayerInventoryCopy(player: P): Any
 
     abstract fun loadPlayerInventoryCopy(player: P, inventory: Any)
+
+    open fun setSplitPlayerName(session: ReplaySession, entity: E, rest: String) {}
 }

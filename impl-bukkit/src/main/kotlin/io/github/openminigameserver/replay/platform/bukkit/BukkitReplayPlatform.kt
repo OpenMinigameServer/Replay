@@ -18,7 +18,7 @@ import io.github.openminigameserver.replay.replayer.ActionPlayerManager
 import io.github.openminigameserver.replay.replayer.IEntityManager
 import io.github.openminigameserver.replay.replayer.ReplaySession
 import io.github.openminigameserver.replay.toReplay
-import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
@@ -44,6 +44,7 @@ class BukkitReplayPlatform : ReplayPlatform<BukkitReplayWorld, BukkitReplayUser,
     }
     override val name: String
         get() = Bukkit.getName()
+
     override val version: String
         get() = Bukkit.getBukkitVersion()
 
@@ -97,7 +98,7 @@ class BukkitReplayPlatform : ReplayPlatform<BukkitReplayWorld, BukkitReplayUser,
         Bukkit.getScheduler().runTask(ReplayPlugin.instance, Runnable {
             with(p.player) {
                 val team = getViewerTeam()
-                team.prefix(Component.text("[Viewer] ", NamedTextColor.GRAY))
+                team.prefix(text("[Viewer] ", NamedTextColor.GRAY))
                 team.color(NamedTextColor.GRAY)
 
                 team.addEntry(name)
@@ -111,6 +112,14 @@ class BukkitReplayPlatform : ReplayPlatform<BukkitReplayWorld, BukkitReplayUser,
         }
 
         return scoreboard.getTeam(replayViewerTeamName) ?: scoreboard.registerNewTeam(replayViewerTeamName)
+    }
+
+    private fun Player.createTeam(name: String): Team {
+        if (scoreboard == Bukkit.getScoreboardManager().mainScoreboard) {
+            scoreboard = Bukkit.getScoreboardManager().newScoreboard
+        }
+
+        return scoreboard.getTeam(name) ?: scoreboard.registerNewTeam(name)
     }
 
     override fun removeFromViewerTeam(player: BukkitReplayUser) {
@@ -165,4 +174,14 @@ class BukkitReplayPlatform : ReplayPlatform<BukkitReplayWorld, BukkitReplayUser,
         return null
     }
 
+    override fun setSplitPlayerName(session: ReplaySession, entity: BukkitReplayEntity, rest: String) {
+        session.viewers.map { (it as BukkitReplayUser).player }.forEach {
+            val npcEntity = entity.entity
+            it.createTeam(npcEntity.name).apply {
+                addEntry(npcEntity.name)
+                color(NamedTextColor.RED)
+                suffix(text(rest))
+            }
+        }
+    }
 }
