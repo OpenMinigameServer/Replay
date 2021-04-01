@@ -6,7 +6,6 @@ import io.github.openminigameserver.replay.ReplayManager
 import io.github.openminigameserver.replay.TickTime
 import io.github.openminigameserver.replay.TimeUnit
 import io.github.openminigameserver.replay.abstraction.ReplayUser
-import io.github.openminigameserver.replay.model.recordable.entity.data.PlayerEntityData
 import io.github.openminigameserver.replay.runOnSeparateThread
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor
@@ -30,13 +29,6 @@ object ReplayCommand {
                 if (replay == null) {
                     sender.sendMessage(text("Please provide a valid Replay ID!", NamedTextColor.RED))
                     return@runOnSeparateThread
-                }
-
-                replay.entities.forEach {
-                    val entityData = it.value.entityData
-                    if (entityData is PlayerEntityData) {
-                        entityData.userName = "FlorenceRyan2006"
-                    }
                 }
 
                 val session = manager.extension.platform.createReplaySession(
